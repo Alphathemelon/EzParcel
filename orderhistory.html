@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order History</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "Poppins", Arial, sans-serif;
+            background: #f5f6fa;
+        }
+
+        /* HEADER — Soft Blue Gradient */
+        .header {
+            background: linear-gradient(135deg, #4ea8ff, #9cd4ff);
+            padding: 22px;
+            color: white;
+            font-size: 26px;
+            font-weight: 600;
+            text-align: center;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-bottom-left-radius: 25px;
+            border-bottom-right-radius: 25px;
+        }
+
+        /* TABS BEAUTIFUL */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            gap: 12px;
+        }
+
+        .tab {
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            transition: 0.2s;
+            border: none;
+        }
+
+        .tab:hover {
+            transform: scale(1.05);
+        }
+
+        .tab.blue { background: #4ea8ff; color: white; }
+        .tab.green { background: #4cd964; color: white; }
+        .tab.red { background: #ff6b6b; color: white; }
+
+        /* ORDER CARD — soft rounded */
+        .order-card {
+            width: 90%;
+            margin: 18px auto;
+            padding: 18px;
+            border-radius: 18px;
+            color: black;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            color: #222;
+            transition: 0.2s;
+        }
+
+        .order-card.green { background: #c8f7c5; }
+        .order-card.red { background: #ffc8c8; }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .toggle-btn {
+            cursor: pointer;
+            font-size: 22px;
+            font-weight: bold;
+            transform: rotate(0deg);
+            transition: 0.3s;
+        }
+
+        .toggle-btn.open {
+            transform: rotate(180deg);
+        }
+
+        .details {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 2px solid rgba(0,0,0,0.2);
+            display: none;
+            font-size: 14px;
+            line-height: 22px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">ORDER HISTORY</div>
+
+    <div class="tabs">
+        <div class="tab blue">ALL</div>
+        <div class="tab green">COMPLETE</div>
+        <div class="tab red">INCOMPLETE</div>
+    </div>
+
+    <div id="parcelList"></div>
+
+    <script>
+        const parcels = [
+            {
+                code: "S10",
+                price: 2.00,
+                phone: "01133237067",
+                orderid: "MXY36273892",
+                weight: "1.30 KG",
+                color: "green"
+            },
+            {
+                code: "S06",
+                price: 2.00,
+                phone: "01922772727",
+                orderid: "A0192277727",
+                weight: "0.80 KG",
+                color: "red"
+            },
+            {
+                code: "M04",
+                price: 4.00,
+                phone: "0198282828",
+                orderid: "MXY8277272",
+                weight: "2.0 KG",
+                color: "red"
+            }
+        ];
+
+        const parcelList = document.getElementById("parcelList");
+
+        parcels.forEach((p, i) => {
+            parcelList.innerHTML += `
+                <div class="order-card ${p.color}">
+                    <div class="order-header">
+                        <div>${p.code}<br>
+                        <span style="font-size:15px;font-weight:500;">RM${p.price.toFixed(2)}</span></div>
+
+                        <div id="btn-${i}" class="toggle-btn" onclick="toggleDetails(${i})">⌄</div>
+                    </div>
+
+                    <div class="details" id="details-${i}">
+                        <b>Phone:</b> ${p.phone}<br>
+                        <b>Order ID:</b> ${p.orderid}<br>
+                        <b>Weight:</b> ${p.weight}<br>
+                    </div>
+                </div>
+            `;
+        });
+
+        function toggleDetails(i) {
+            const box = document.getElementById("details-" + i);
+            const btn = document.getElementById("btn-" + i);
+
+            if (box.style.display === "block") {
+                box.style.display = "none";
+                btn.classList.remove("open");
+            } else {
+                box.style.display = "block";
+                btn.classList.add("open");
+            }
+        }
+    </script>
+
+</body>
+</html>
