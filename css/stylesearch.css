@@ -1,0 +1,207 @@
+/* =========================================
+   GLOBAL VARIABLES & RESET
+   ========================================= */
+:root {
+    /* Style 2 Variables (Search Animation) */
+    --rad: .7rem;
+    --dur: .3s;
+    --bez: cubic-bezier(0, 0, 0.43, 1.49);
+    --height: 4rem;
+    --btn-width: 6rem;
+    
+    /* Colors */
+    --color-dark: #2f2f2f;
+    --color-light: #fff;
+    --color-brand: #3454B4; /* Matches Header Blue */
+    --bg-color: #f5f6fa;
+}
+
+body {
+    margin: 0;
+    font-family: "Poppins", Arial, sans-serif;
+    background: var(--bg-color);
+    min-height: 100vh;
+}
+
+/* =========================================
+   HEADER (Style 1)
+   ========================================= */
+.header {
+    background: linear-gradient(135deg, #2A4390, #3454B4);
+    padding: 22px;
+    color: white;
+    font-size: 26px;
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin-bottom: 25px;
+}
+
+/* =========================================
+   SEARCH BAR (Style 2)
+   ========================================= */
+.search-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 25px;
+    padding: 0 15px;
+}
+
+/* Form Container */
+form.search-form {
+    position: relative;
+    width: 30rem;
+    max-width: 100%;
+    background: var(--color-brand);
+    border-radius: var(--rad);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Shared Styles for Input & Button */
+.search-input, .search-btn {
+    height: var(--height);
+    font-family: 'Lato', sans-serif;
+    border: 0;
+    color: var(--color-dark);
+    font-size: 1.6rem;
+}
+
+/* Search Input Field */
+.search-input[type="search"] {
+    outline: 0; 
+    width: 100%;
+    background: var(--color-light);
+    padding: 0 1.6rem;
+    border-radius: var(--rad);
+    appearance: none; 
+    transition: all var(--dur) var(--bez);
+    transition-property: width, border-radius;
+    z-index: 1;
+    position: relative;
+    box-sizing: border-box; /* Ensures padding doesn't break width */
+}
+
+/* Search Button (Hidden by default) */
+.search-btn {
+    display: none; 
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: var(--btn-width);
+    font-weight: bold;
+    background: var(--color-brand);
+    color: white;
+    border-radius: 0 var(--rad) var(--rad) 0;
+    cursor: pointer;
+}
+
+/* Animation Logic: When typing, shrink input and show button */
+.search-input:not(:placeholder-shown) {
+    border-radius: var(--rad) 0 0 var(--rad);
+    width: calc(100% - var(--btn-width));
+}
+
+.search-input:not(:placeholder-shown) + .search-btn {
+    display: block;
+}
+
+/* Accessibility: Hide Label Visually */
+.visually-hidden {
+    position: absolute;
+    clip: rect(1px, 1px, 1px, 1px);
+    padding: 0;
+    border: 0;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+}
+
+/* =========================================
+   TABS (Style 1)
+   ========================================= */
+.tabs {
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+    gap: 12px;
+}
+
+.tab {
+    padding: 8px 18px;
+    border-radius: 25px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 600;
+    border: none;
+    color: white;
+    transition: 0.2s;
+}
+
+.tab:hover { transform: scale(1.08); }
+.tab.active { box-shadow: 0 3px 10px rgba(0,0,0,0.25); }
+.tab.blue { background: #4ea8ff; }
+.tab.green { background: #4cd964; }
+.tab.red { background: #ff6b6b; }
+
+/* =========================================
+   GRID & CARDS (Style 1)
+   ========================================= */
+#parcelList {
+    width: 90%;
+    margin: 30px auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.order-card {
+    padding: 18px;
+    border-radius: 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background: white;
+    transition: 0.2s;
+}
+
+.order-card:hover { transform: translateY(-3px); }
+.order-card.green { border-left: 6px solid #4cd964; }
+.order-card.red { border-left: 6px solid #ff6b6b; }
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.toggle-btn {
+    cursor: pointer;
+    font-size: 20px;
+    transform: rotate(0deg);
+    transition: 0.3s;
+    color: #666;
+}
+
+.toggle-btn.open { transform: rotate(180deg); }
+
+.details {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+    display: none;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+}
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+@media (max-width: 900px) {
+    #parcelList { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+    #parcelList { grid-template-columns: repeat(1, 1fr); }
+}
