@@ -4,12 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EZParcel – Scanner + Storage</title>
-<link rel="stylesheet" href="css/style.css">
+
 <style>
 /* ===================== GLOBAL ===================== */
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body, html {
     margin: 0;
@@ -17,16 +15,16 @@ body, html {
     font-family: "Poppins", sans-serif;
     background: #f6f5f7;
     min-height: 100vh;
+
+    /* Center container but allow MAIN PAGE scrolling */
     display: flex;
     justify-content: center;
-    align-items: flex-start;
     padding: 20px;
-    overflow-x: hidden;
 }
 
 .hidden { display: none; }
 
-/* ===================== CONTAINER ===================== */
+/* ===================== MAIN CONTAINER ===================== */
 .container {
     width: 100%;
     max-width: 420px;
@@ -35,25 +33,24 @@ body, html {
     border-radius: 20px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     text-align: center;
-    overflow-y: auto;
-    max-height: 90vh; /* scroll if content too tall */
 }
 
-/* ===================== HEADINGS ===================== */
+/* ===================== TEXT ===================== */
 h2 {
     font-size: 26px;
     margin-bottom: 10px;
     color: #3454B4;
 }
 
-p.small-title {
+.small-title {
     color: #555;
     margin-bottom: 20px;
 }
 
-/* ===================== FORM ELEMENTS ===================== */
+/* ===================== VIDEO (QR) ===================== */
 video {
     width: 100%;
+    height: auto;
     max-height: 300px;
     border-radius: 14px;
     background: black;
@@ -61,12 +58,13 @@ video {
     object-fit: cover;
 }
 
+/* ===================== FORM ===================== */
 label {
     font-size: 14px;
     font-weight: 600;
-    display: block;
     text-align: left;
-    margin-top: 10px;
+    display: block;
+    margin-top: 12px;
     color: #333;
 }
 
@@ -78,10 +76,9 @@ input {
     margin-top: 5px;
     background: #f3f3f3;
     font-size: 15px;
-    color: #333;
 }
 
-/* ===================== BUTTONS ===================== */
+/* ===================== BUTTON ===================== */
 button {
     width: 100%;
     padding: 14px;
@@ -94,41 +91,39 @@ button {
     cursor: pointer;
     font-size: 16px;
 }
-button:hover { opacity: 0.93; }
+
+button:hover { opacity: 0.9; }
 
 /* ===================== STORAGE PAGE ===================== */
 .storage-header {
-    background: linear-gradient(to right,#3454B4,#2E3B99);
-    padding: 20px;
+    background: linear-gradient(to right, #3454B4, #2E3B99);
+    padding: 18px;
     color: white;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: bold;
     border-radius: 12px;
     margin-bottom: 20px;
 }
 
-/* ===================== GRID FOR SLOTS ===================== */
+/* ===================== GRID ===================== */
 #gridContainer {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
     gap: 15px;
-    margin-top: 20px;
+    width: 100%;
 }
 
 .slot {
-    padding: 18px 0;
+    padding: 16px 0;
     border-radius: 12px;
     font-size: 18px;
     font-weight: bold;
-    cursor: pointer;
     text-align: center;
+    cursor: pointer;
     color: white;
-    transition: 0.2s;
 }
 
-.slot:hover {
-    transform: scale(1.05);
-}
+.slot:hover { transform: scale(1.05); }
 
 .available { background: #28A745; }
 .selected { background: #DC3545; }
@@ -138,19 +133,26 @@ button:hover { opacity: 0.93; }
     margin-top: 15px;
     background: linear-gradient(to right, #28A745, #1E7E34);
 }
-#confirmBtn:hover { opacity: 0.9; }
-#confirmBtn:disabled { background: #ccc; cursor: not-allowed; }
 
+#confirmBtn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* ===================== RESPONSIVE ===================== */
 @media (max-width: 480px) {
-    .container {
-        padding: 20px;
-    }
     h2 { font-size: 22px; }
-    .storage-header { font-size: 20px; padding: 15px; }
     .slot { font-size: 16px; padding: 14px 0; }
+}
+
+@media (max-width: 360px) {
+    #gridContainer {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 </style>
 </head>
+
 <body>
 
 <!-- ============================ SCANNER PAGE ============================ -->
@@ -181,6 +183,7 @@ button:hover { opacity: 0.93; }
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+
 <script>
 /* ===== QR SCANNER ===== */
 const video = document.getElementById("camera");
@@ -205,17 +208,22 @@ startCamera();
 
 function scanLoop() {
     if (!scanning) return;
+
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
+
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(data.data, canvas.width, canvas.height);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, canvas.width, canvas.height);
+
         if (code) {
             document.getElementById("parcelID").value = code.data;
             stopCamera();
         }
     }
+
     requestAnimationFrame(scanLoop);
 }
 
@@ -224,14 +232,14 @@ function stopCamera() {
     if (stream) stream.getTracks().forEach(t => t.stop());
 }
 
-/* ===== SUBMIT PARCEL INFO ===== */
+/* ===== SUBMIT PARCEL ===== */
 function submitParcel() {
     let parcel = parcelID.value.trim();
     let phone = phoneNumber.value.trim();
     let weight = parseFloat(parcelWeight.value);
 
     if (!parcel || !phone || !weight) {
-        alert("Please scan QR, enter phone number, and weight.");
+        alert("Please scan QR, enter phone & weight.");
         return;
     }
 
@@ -240,46 +248,49 @@ function submitParcel() {
     else if (weight <= 5) shelf = "MEDIUM – SHELF C";
     else shelf = "LARGE – SHELF D";
 
-    document.getElementById("shelfTitle").innerText = shelf;
-    document.getElementById("scannerPage").classList.add("hidden");
-    document.getElementById("storagePage").classList.remove("hidden");
+    shelfTitle.innerText = shelf;
+
+    scannerPage.classList.add("hidden");
+    storagePage.classList.remove("hidden");
 
     generateSlots();
 }
 
-/* ===== GENERATE SLOT GRID ===== */
+/* ===== GENERATE SLOTS ===== */
 function generateSlots() {
     const container = document.getElementById("gridContainer");
-    container.innerHTML = ""; 
+    container.innerHTML = "";
 
     for (let i = 1; i <= 24; i++) {
-        const num = i.toString().padStart(2, '0');
+        const num = i.toString().padStart(2, "0");
         const div = document.createElement("div");
+
         div.className = "slot available";
         div.textContent = num;
 
         div.onclick = () => {
-            document.querySelectorAll(".slot.selected").forEach(s => s.classList.remove("selected"));
+            document.querySelectorAll(".slot.selected").forEach(el => el.classList.remove("selected"));
             div.classList.add("selected");
             updateConfirmButton();
         };
 
         container.appendChild(div);
     }
+
     updateConfirmButton();
 }
 
 function updateConfirmButton() {
-    const anySelected = document.querySelectorAll(".slot.selected").length > 0;
-    document.getElementById("confirmBtn").disabled = !anySelected;
+    const selected = document.querySelector(".slot.selected");
+    confirmBtn.disabled = !selected;
 }
 
 function confirmLocation() {
-    const selectedSlot = document.querySelector(".slot.selected").textContent;
-    alert("Confirmed slot: " + selectedSlot);
+    const selected = document.querySelector(".slot.selected").textContent;
+    alert("Confirmed slot: " + selected);
 
-    document.getElementById("storagePage").classList.add("hidden");
-    document.getElementById("scannerPage").classList.remove("hidden");
+    storagePage.classList.add("hidden");
+    scannerPage.classList.remove("hidden");
 
     parcelID.value = "";
     phoneNumber.value = "";
