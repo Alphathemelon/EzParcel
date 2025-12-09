@@ -2,20 +2,24 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Parcel QR Scanner</title>
-<link rel="stylesheet" href="css/style.css"> <!-- same styling system as login -->
+<title>EZParcel – Scanner + Storage</title>
+<link rel="stylesheet" href="css/style.css">
 <style>
+/* ===== GLOBAL PAGE STYLE ===== */
 body {
     margin: 0;
     padding: 0;
     font-family: "Poppins", sans-serif;
-    background: #f6f5f7; /* same as login */
+    background: #f6f5f7;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
 }
 
+.hidden { display: none; }
+
+/* ===== MAIN CONTAINER ===== */
 .container {
     width: 420px;
     background: white;
@@ -28,7 +32,7 @@ body {
 h2 {
     font-size: 26px;
     margin-bottom: 10px;
-    color: #ff4b2b; /* same orange-red from login */
+    color: #3454B4;
 }
 
 p.small-title {
@@ -36,6 +40,7 @@ p.small-title {
     margin-bottom: 25px;
 }
 
+/* ===== FORM ELEMENTS ===== */
 video {
     width: 100%;
     border-radius: 14px;
@@ -67,8 +72,7 @@ button {
     width: 100%;
     padding: 14px;
     margin-top: 20px;
-    background: #ff416c; 
-    background: linear-gradient(to right, #ff4b2b, #ff416c);
+    background: linear-gradient(to right, #3454B4, #2E3B99);
     border: none;
     border-radius: 20px;
     color: white;
@@ -76,15 +80,61 @@ button {
     cursor: pointer;
     font-size: 16px;
 }
-button:hover {
-    opacity: 0.93;
+button:hover { opacity: 0.93; }
+
+/* ===== STORAGE PAGE STYLE ===== */
+.storage-header {
+    background: linear-gradient(to right,#3454B4,#2E3B99);
+    padding: 20px;
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+    border-radius: 12px;
+    margin-bottom: 20px;
 }
+
+/* GRID FOR SLOTS */
+#gridContainer {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.slot {
+    padding: 18px 0;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    color: white;
+    transition: 0.2s;
+}
+
+.slot:hover {
+    transform: scale(1.05);
+}
+
+.available { background: #28A745; }
+.selected { background: #DC3545; }
+
+/* CONFIRM BUTTON */
+#confirmBtn {
+    margin-top: 15px;
+    background: linear-gradient(to right, #28A745, #1E7E34);
+}
+#confirmBtn:hover { opacity: 0.9; }
+#confirmBtn:disabled { background: #ccc; cursor: not-allowed; }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<!-- ============================
+      PAGE 1 — SCANNER PAGE
+============================= -->
+<div class="container" id="scannerPage">
     <h2>Parcel Scanner</h2>
     <p class="small-title">Scan your QR and enter weight</p>
 
@@ -103,9 +153,23 @@ button:hover {
     <button onclick="submitParcel()">Submit Parcel Info</button>
 </div>
 
+<!-- ============================
+      PAGE 2 — STORAGE LOCATION
+============================= -->
+<div class="container hidden" id="storagePage">
+    <div class="storage-header" id="shelfTitle">Storage Location</div>
+
+    <div id="gridContainer"></div>
+
+    <button id="confirmBtn" onclick="confirmLocation()" disabled>Confirm Location</button>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
 
 <script>
+/* ==========================================
+   QR SCANNER
+========================================== */
 const video = document.getElementById("camera");
 const canvas = document.getElementById("qr-canvas");
 const ctx = canvas.getContext("2d");
@@ -113,16 +177,19 @@ const ctx = canvas.getContext("2d");
 let scanning = false;
 let stream;
 
-// Start camera
-navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-    .then(s => {
-        stream = s;
-        video.srcObject = s;
-        scanning = true;
-        scanLoop();
-    });
+function startCamera() {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(s => {
+            stream = s;
+            video.srcObject = s;
+            scanning = true;
+            scanLoop();
+        })
+        .catch(err => console.error("Camera error:", err));
+}
 
-// QR Scan Loop
+startCamera();
+
 function scanLoop() {
     if (!scanning) return;
 
@@ -139,17 +206,17 @@ function scanLoop() {
             stopCamera();
         }
     }
-
     requestAnimationFrame(scanLoop);
 }
 
-// Stop camera
 function stopCamera() {
     scanning = false;
     if (stream) stream.getTracks().forEach(t => t.stop());
 }
 
-// Submit
+/* ==========================================
+   SUBMIT → SHOW STORAGE PAGE
+========================================== */
 function submitParcel() {
     let parcel = parcelID.value.trim();
     let phone = phoneNumber.value.trim();
@@ -160,14 +227,74 @@ function submitParcel() {
         return;
     }
 
-    // Weight logic
-    let category = "";
-    if (weight <= 2) category = "Small";
-    else if (weight <= 5) category = "Medium";
-    else category = "Large";
+    // Determine shelf
+    let shelf = "";
+    if (weight <= 2) shelf = "SMALL – SHELF B";
+    else if (weight <= 5) shelf = "MEDIUM – SHELF C";
+    else shelf = "LARGE – SHELF D";
 
-    // Redirect
-    window.location.href = "storagelocation.html?weight=" + weight;
+    document.getElementById("shelfTitle").innerText = shelf;
+
+    document.getElementById("scannerPage").classList.add("hidden");
+    document.getElementById("storagePage").classList.remove("hidden");
+
+    generateSlots();
+}
+
+/* ==========================================
+   GENERATE 24 SLOTS GRID
+========================================== */
+function generateSlots() {
+    const container = document.getElementById("gridContainer");
+    container.innerHTML = ""; 
+
+    for (let i = 1; i <= 24; i++) {
+        const num = i.toString().padStart(2, '0');
+
+        const div = document.createElement("div");
+        div.className = "slot available";
+        div.textContent = num;
+
+        div.onclick = () => {
+            // Deselect all first
+            document.querySelectorAll(".slot.selected").forEach(s => s.classList.remove("selected"));
+            // Select clicked
+            div.classList.add("selected");
+            updateConfirmButton();
+        };
+
+        container.appendChild(div);
+    }
+
+    updateConfirmButton();
+}
+
+/* ==========================================
+   ENABLE CONFIRM BUTTON IF SLOT SELECTED
+========================================== */
+function updateConfirmButton() {
+    const anySelected = document.querySelectorAll(".slot.selected").length > 0;
+    document.getElementById("confirmBtn").disabled = !anySelected;
+}
+
+/* ==========================================
+   CONFIRM LOCATION
+========================================== */
+function confirmLocation() {
+    const selectedSlot = document.querySelector(".slot.selected").textContent;
+    alert("Confirmed slot: " + selectedSlot);
+
+    // Clear storage page and go back to scanner
+    document.getElementById("storagePage").classList.add("hidden");
+    document.getElementById("scannerPage").classList.remove("hidden");
+
+    // Clear previous parcel info
+    parcelID.value = "";
+    phoneNumber.value = "";
+    parcelWeight.value = "";
+
+    // Restart camera for next parcel
+    startCamera();
 }
 </script>
 
