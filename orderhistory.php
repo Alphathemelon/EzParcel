@@ -72,6 +72,8 @@ let parcels = <?php
             "orderid" => $p["fld_parcel_ID"],
             "weight"  => $p["fld_parcel_weight"],
             "color"   => ($p["fld_parcel_status"] === "Collected" ? "green" : "red")
+            "color"   => ($p["fld_parcel_status"] === "Collected" ? "green" : "red"),
+            "date"    => $p["fld_parcel_date"]
         ];
     }
 
@@ -104,6 +106,7 @@ function displayParcels(list) {
                         <button class="btn btn-paid" onclick="markPaid(this, '${p.orderid}')">Paid</button>
                     </div>
                     ` : ''}
+                    <b>Date:</b> ${p.date}
                 </div>
             </div>
         `;
@@ -121,14 +124,17 @@ function filterParcels(type) {
         displayParcels(parcels);
     } 
     else if (type === "green") {
+        // GREEN = Collected
         document.querySelector(".tab.green").classList.add("active");
         displayParcels(parcels.filter(p => p.color === "green"));
     } 
     else if (type === "red") {
+        // RED = Uncollected
         document.querySelector(".tab.red").classList.add("active");
         displayParcels(parcels.filter(p => p.color === "red"));
     }
 }
+
 
 
 // TOGGLE
