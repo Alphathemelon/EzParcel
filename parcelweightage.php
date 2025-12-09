@@ -143,10 +143,12 @@ button:hover { opacity: 0.9; }
 </head>
 
 <body>
+<?php include 'navbar.php'; ?>
 
 <div class="container" id="scannerPage">
     <h2>Parcel Scanner</h2>
     <p id="currentDate" style="color:#555; margin-bottom: 15px;"></p>
+    <div id="messageBox" aria-live="polite" style="margin-bottom:10px;"></div>
 
     <video id="camera" autoplay></video>
     <canvas id="qr-canvas" style="display:none;"></canvas>
@@ -238,7 +240,7 @@ function submitParcel() {
     let weight = parseFloat(parcelWeight.value);
 
     if (!parcel || !phone || !weight) {
-        alert("Please scan QR, enter phone & weight.");
+        showMessage('error', "Please scan QR, enter phone & weight.");
         return;
     }
 
@@ -249,6 +251,7 @@ function submitParcel() {
     else if (weight <= 5) { shelfCode = 'M'; shelfLabel = "MEDIUM – SHELF C"; }
     else { shelfCode = 'L'; shelfLabel = "LARGE – SHELF D"; }
 
+    // expose code for confirmLocation to use
     window.currentShelfCode = shelfCode;
 
     shelfTitle.innerText = shelfLabel;
@@ -291,7 +294,7 @@ function updateConfirmButton() {
 function confirmLocation() {
     const selectedEl = document.querySelector(".slot.selected");
     if (!selectedEl) {
-        alert('No slot selected');
+        showMessage('error', 'No slot selected');
         return;
     }
 
@@ -306,7 +309,7 @@ function confirmLocation() {
     const location = selected;
 
     if (!parcel || !phone || !weight) {
-        alert('Missing parcel data. Please scan QR, enter phone and weight.');
+        showMessage('error', 'Missing parcel data. Please scan QR, enter phone and weight.');
         return;
     }
 
@@ -331,9 +334,11 @@ function confirmLocation() {
     .then(res => res.json())
     .then(json => {
         if (json && json.success) {
-            alert('Parcel saved: ' + (json.message || 'OK'));
+            showMessage('success', 'Parcel saved: ' + (json.message || 'OK'));
         } else {
-            alert('Save failed: ' + (json && (json.error || json.message) ? (json.error || json.message) : 'Unknown error'));
+            // server may return error message (e.g., duplicate)
+            const msg = json && (json.error || json.message) ? (json.error || json.message) : 'Unknown error';
+            showMessage('error', 'Save failed: ' + msg);
         }
 
         // Reset UI and start camera again
@@ -349,9 +354,40 @@ function confirmLocation() {
     })
     .catch(err => {
         console.error('Network error:', err);
-        alert('Network error while saving parcel');
+        showMessage('error', 'Network error while saving parcel');
     })
     .finally(() => { btn.disabled = false; });
+}
+
+// Inline message helper
+function showMessage(type, text, timeout = 5000) {
+    const box = document.getElementById('messageBox');
+    if (!box) return;
+    box.innerHTML = '';
+    const div = document.createElement('div');
+    div.className = 'msg ' + (type === 'success' ? 'success' : type === 'error' ? 'error' : 'info');
+    div.textContent = text;
+    div.style.padding = '10px';
+    div.style.borderRadius = '8px';
+    div.style.fontWeight = '600';
+    div.style.textAlign = 'center';
+    if (type === 'success') {
+        div.style.background = '#d4edda';
+        div.style.color = '#155724';
+        div.style.border = '1px solid #c3e6cb';
+    } else if (type === 'error') {
+        div.style.background = '#f8d7da';
+        div.style.color = '#721c24';
+        div.style.border = '1px solid #f5c6cb';
+    } else {
+        div.style.background = '#d1ecf1';
+        div.style.color = '#0c5460';
+        div.style.border = '1px solid #bee5eb';
+    }
+    box.appendChild(div);
+    if (timeout > 0) {
+        setTimeout(() => { if (box.contains(div)) box.removeChild(div); }, timeout);
+    }
 }
 </script>
 
