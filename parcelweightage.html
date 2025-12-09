@@ -2,33 +2,44 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EZParcel – Scanner + Storage</title>
 <link rel="stylesheet" href="css/style.css">
 <style>
-/* ===== GLOBAL PAGE STYLE ===== */
-body {
+/* ===================== GLOBAL ===================== */
+* {
+    box-sizing: border-box;
+}
+
+body, html {
     margin: 0;
     padding: 0;
     font-family: "Poppins", sans-serif;
     background: #f6f5f7;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
-    height: 100vh;
+    align-items: flex-start;
+    padding: 20px;
+    overflow-x: hidden;
 }
 
 .hidden { display: none; }
 
-/* ===== MAIN CONTAINER ===== */
+/* ===================== CONTAINER ===================== */
 .container {
-    width: 420px;
+    width: 100%;
+    max-width: 420px;
     background: white;
-    padding: 30px;
+    padding: 25px;
     border-radius: 20px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     text-align: center;
+    overflow-y: auto;
+    max-height: 90vh; /* scroll if content too tall */
 }
 
+/* ===================== HEADINGS ===================== */
 h2 {
     font-size: 26px;
     margin-bottom: 10px;
@@ -37,15 +48,17 @@ h2 {
 
 p.small-title {
     color: #555;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
-/* ===== FORM ELEMENTS ===== */
+/* ===================== FORM ELEMENTS ===================== */
 video {
     width: 100%;
+    max-height: 300px;
     border-radius: 14px;
     background: black;
     margin-bottom: 12px;
+    object-fit: cover;
 }
 
 label {
@@ -68,6 +81,7 @@ input {
     color: #333;
 }
 
+/* ===================== BUTTONS ===================== */
 button {
     width: 100%;
     padding: 14px;
@@ -82,7 +96,7 @@ button {
 }
 button:hover { opacity: 0.93; }
 
-/* ===== STORAGE PAGE STYLE ===== */
+/* ===================== STORAGE PAGE ===================== */
 .storage-header {
     background: linear-gradient(to right,#3454B4,#2E3B99);
     padding: 20px;
@@ -93,10 +107,10 @@ button:hover { opacity: 0.93; }
     margin-bottom: 20px;
 }
 
-/* GRID FOR SLOTS */
+/* ===================== GRID FOR SLOTS ===================== */
 #gridContainer {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
     gap: 15px;
     margin-top: 20px;
 }
@@ -119,21 +133,27 @@ button:hover { opacity: 0.93; }
 .available { background: #28A745; }
 .selected { background: #DC3545; }
 
-/* CONFIRM BUTTON */
+/* ===================== CONFIRM BUTTON ===================== */
 #confirmBtn {
     margin-top: 15px;
     background: linear-gradient(to right, #28A745, #1E7E34);
 }
 #confirmBtn:hover { opacity: 0.9; }
 #confirmBtn:disabled { background: #ccc; cursor: not-allowed; }
+
+@media (max-width: 480px) {
+    .container {
+        padding: 20px;
+    }
+    h2 { font-size: 22px; }
+    .storage-header { font-size: 20px; padding: 15px; }
+    .slot { font-size: 16px; padding: 14px 0; }
+}
 </style>
 </head>
-
 <body>
 
-<!-- ============================
-      PAGE 1 — SCANNER PAGE
-============================= -->
+<!-- ============================ SCANNER PAGE ============================ -->
 <div class="container" id="scannerPage">
     <h2>Parcel Scanner</h2>
     <p class="small-title">Scan your QR and enter weight</p>
@@ -153,23 +173,16 @@ button:hover { opacity: 0.93; }
     <button onclick="submitParcel()">Submit Parcel Info</button>
 </div>
 
-<!-- ============================
-      PAGE 2 — STORAGE LOCATION
-============================= -->
+<!-- ============================ STORAGE PAGE ============================ -->
 <div class="container hidden" id="storagePage">
     <div class="storage-header" id="shelfTitle">Storage Location</div>
-
     <div id="gridContainer"></div>
-
     <button id="confirmBtn" onclick="confirmLocation()" disabled>Confirm Location</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
-
 <script>
-/* ==========================================
-   QR SCANNER
-========================================== */
+/* ===== QR SCANNER ===== */
 const video = document.getElementById("camera");
 const canvas = document.getElementById("qr-canvas");
 const ctx = canvas.getContext("2d");
@@ -192,15 +205,12 @@ startCamera();
 
 function scanLoop() {
     if (!scanning) return;
-
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
         const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const code = jsQR(data.data, canvas.width, canvas.height);
-
         if (code) {
             document.getElementById("parcelID").value = code.data;
             stopCamera();
@@ -214,9 +224,7 @@ function stopCamera() {
     if (stream) stream.getTracks().forEach(t => t.stop());
 }
 
-/* ==========================================
-   SUBMIT → SHOW STORAGE PAGE
-========================================== */
+/* ===== SUBMIT PARCEL INFO ===== */
 function submitParcel() {
     let parcel = parcelID.value.trim();
     let phone = phoneNumber.value.trim();
@@ -227,73 +235,56 @@ function submitParcel() {
         return;
     }
 
-    // Determine shelf
     let shelf = "";
     if (weight <= 2) shelf = "SMALL – SHELF B";
     else if (weight <= 5) shelf = "MEDIUM – SHELF C";
     else shelf = "LARGE – SHELF D";
 
     document.getElementById("shelfTitle").innerText = shelf;
-
     document.getElementById("scannerPage").classList.add("hidden");
     document.getElementById("storagePage").classList.remove("hidden");
 
     generateSlots();
 }
 
-/* ==========================================
-   GENERATE 24 SLOTS GRID
-========================================== */
+/* ===== GENERATE SLOT GRID ===== */
 function generateSlots() {
     const container = document.getElementById("gridContainer");
     container.innerHTML = ""; 
 
     for (let i = 1; i <= 24; i++) {
         const num = i.toString().padStart(2, '0');
-
         const div = document.createElement("div");
         div.className = "slot available";
         div.textContent = num;
 
         div.onclick = () => {
-            // Deselect all first
             document.querySelectorAll(".slot.selected").forEach(s => s.classList.remove("selected"));
-            // Select clicked
             div.classList.add("selected");
             updateConfirmButton();
         };
 
         container.appendChild(div);
     }
-
     updateConfirmButton();
 }
 
-/* ==========================================
-   ENABLE CONFIRM BUTTON IF SLOT SELECTED
-========================================== */
 function updateConfirmButton() {
     const anySelected = document.querySelectorAll(".slot.selected").length > 0;
     document.getElementById("confirmBtn").disabled = !anySelected;
 }
 
-/* ==========================================
-   CONFIRM LOCATION
-========================================== */
 function confirmLocation() {
     const selectedSlot = document.querySelector(".slot.selected").textContent;
     alert("Confirmed slot: " + selectedSlot);
 
-    // Clear storage page and go back to scanner
     document.getElementById("storagePage").classList.add("hidden");
     document.getElementById("scannerPage").classList.remove("hidden");
 
-    // Clear previous parcel info
     parcelID.value = "";
     phoneNumber.value = "";
     parcelWeight.value = "";
 
-    // Restart camera for next parcel
     startCamera();
 }
 </script>
