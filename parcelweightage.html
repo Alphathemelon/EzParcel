@@ -6,7 +6,6 @@
 <title>EZParcel – Scanner + Storage</title>
 
 <style>
-/* ===================== GLOBAL ===================== */
 * { box-sizing: border-box; }
 
 body, html {
@@ -16,7 +15,6 @@ body, html {
     background: #f6f5f7;
     min-height: 100vh;
 
-    /* Center container but allow MAIN PAGE scrolling */
     display: flex;
     justify-content: center;
     padding: 20px;
@@ -24,7 +22,6 @@ body, html {
 
 .hidden { display: none; }
 
-/* ===================== MAIN CONTAINER ===================== */
 .container {
     width: 100%;
     max-width: 420px;
@@ -35,7 +32,6 @@ body, html {
     text-align: center;
 }
 
-/* ===================== TEXT ===================== */
 h2 {
     font-size: 26px;
     margin-bottom: 10px;
@@ -47,7 +43,6 @@ h2 {
     margin-bottom: 20px;
 }
 
-/* ===================== VIDEO (QR) ===================== */
 video {
     width: 100%;
     height: auto;
@@ -58,7 +53,6 @@ video {
     object-fit: cover;
 }
 
-/* ===================== FORM ===================== */
 label {
     font-size: 14px;
     font-weight: 600;
@@ -78,7 +72,6 @@ input {
     font-size: 15px;
 }
 
-/* ===================== BUTTON ===================== */
 button {
     width: 100%;
     padding: 14px;
@@ -94,7 +87,6 @@ button {
 
 button:hover { opacity: 0.9; }
 
-/* ===================== STORAGE PAGE ===================== */
 .storage-header {
     background: linear-gradient(to right, #3454B4, #2E3B99);
     padding: 18px;
@@ -105,7 +97,6 @@ button:hover { opacity: 0.9; }
     margin-bottom: 20px;
 }
 
-/* ===================== GRID ===================== */
 #gridContainer {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
@@ -128,7 +119,6 @@ button:hover { opacity: 0.9; }
 .available { background: #28A745; }
 .selected { background: #DC3545; }
 
-/* ===================== CONFIRM BUTTON ===================== */
 #confirmBtn {
     margin-top: 15px;
     background: linear-gradient(to right, #28A745, #1E7E34);
@@ -139,7 +129,6 @@ button:hover { opacity: 0.9; }
     cursor: not-allowed;
 }
 
-/* ===================== RESPONSIVE ===================== */
 @media (max-width: 480px) {
     h2 { font-size: 22px; }
     .slot { font-size: 16px; padding: 14px 0; }
@@ -155,10 +144,9 @@ button:hover { opacity: 0.9; }
 
 <body>
 
-<!-- ============================ SCANNER PAGE ============================ -->
 <div class="container" id="scannerPage">
     <h2>Parcel Scanner</h2>
-    <p class="small-title">Scan your QR and enter weight</p>
+    <p id="currentDate" style="color:#555; margin-bottom: 15px;"></p>
 
     <video id="camera" autoplay></video>
     <canvas id="qr-canvas" style="display:none;"></canvas>
@@ -177,6 +165,7 @@ button:hover { opacity: 0.9; }
 
 <!-- ============================ STORAGE PAGE ============================ -->
 <div class="container hidden" id="storagePage">
+    <p id="currentDateStorage" style="color:#555; margin-bottom: 15px;"></p>
     <div class="storage-header" id="shelfTitle">Storage Location</div>
     <div id="gridContainer"></div>
     <button id="confirmBtn" onclick="confirmLocation()" disabled>Confirm Location</button>
@@ -185,6 +174,16 @@ button:hover { opacity: 0.9; }
 <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
 
 <script>
+/* ===== DATE ===== */
+function updateDate() {
+    const now = new Date();
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    const formattedDate = now.toLocaleDateString('en-GB', options);
+    document.getElementById("currentDate").innerText = formattedDate;
+    document.getElementById("currentDateStorage").innerText = formattedDate;
+}
+updateDate();
+
 /* ===== QR SCANNER ===== */
 const video = document.getElementById("camera");
 const canvas = document.getElementById("qr-canvas");
