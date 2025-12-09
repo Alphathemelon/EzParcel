@@ -71,7 +71,7 @@ let parcels = <?php
             "phone"   => $p["fld_user_phone"],
             "orderid" => $p["fld_parcel_ID"],
             "weight"  => $p["fld_parcel_weight"],
-            "color"   => ($p["fld_parcel_status"] === "Complete" ? "green" : "red")
+            "color"   => ($p["fld_parcel_status"] === "Collected" ? "green" : "red")
         ];
     }
 
@@ -85,7 +85,6 @@ let parcels = <?php
 function displayParcels(list) {
     const parcelList = document.getElementById("parcelList");
     parcelList.innerHTML = "";
-
     list.forEach((p, i) => {
         parcelList.innerHTML += `
             <div class="order-card ${p.color}">
@@ -93,17 +92,24 @@ function displayParcels(list) {
                     <div>${p.code}<br>
                         <span style="font-size:15px;font-weight:500;">RM${p.price.toFixed(2)}</span>
                     </div>
-                    <div id="arrow-${i}" class="toggle-btn" onclick="toggleDetails(${i})">⌄</div>
+                    <div class="toggle-btn" onclick="toggleDetails(this)">⌄</div>
                 </div>
 
-                <div class="details" id="details-${i}">
+                <div class="details">
                     <b>Phone:</b> ${p.phone}<br>
                     <b>Order ID:</b> ${p.orderid}<br>
                     <b>Weight:</b> ${p.weight}<br>
+                    ${p.color === 'red' ? `
+                    <div class="action-buttons" style="margin-top:10px;">
+                        <button class="btn btn-edit" onclick="editParcel(this, '${p.orderid}')">Edit</button>
+                        <button class="btn btn-paid" onclick="markPaid(this, '${p.orderid}')">Paid</button>
+                    </div>
+                    ` : ''}
                 </div>
             </div>
         `;
     });
+    // displayParcels complete
 }
 
 
@@ -127,16 +133,78 @@ function filterParcels(type) {
 
 
 // TOGGLE
-function toggleDetails(id) {
-    const box = document.getElementById("details-" + id);
-    const arrow = document.getElementById("arrow-" + id);
+function toggleDetails(el) {
+    const card = el.closest('.order-card');
+    if (!card) return;
+    // Close other open cards so only one is open at a time
+    document.querySelectorAll('.order-card.open').forEach(c => {
+        if (c === card) return;
+        c.classList.remove('open');
+        const btn = c.querySelector('.toggle-btn');
+        if (btn) btn.classList.remove('open');
+    });
 
-    if (box.style.display === "block") {
-        box.style.display = "none";
-        arrow.classList.remove("open");
-    } else {
-        box.style.display = "block";
-        arrow.classList.add("open");
+    // Toggle the clicked card
+    card.classList.toggle('open');
+    el.classList.toggle('open');
+}
+
+
+// Edit button handler ( blm settle lagi :> )
+function editParcel(btn, parcelID) {
+    // Redirect to parcelweightage.php with parcelID as query param for editing
+    const url = `parcelweightage.php?parcelID=${encodeURIComponent(parcelID)}`;
+    window.location.href = url;
+}
+
+// Mark parcel as Paid (Collected)
+async function markPaid(btn, parcelID) {
+    // Ask for confirmation before proceeding
+    const ok = confirm(`Mark parcel ${parcelID} as Paid/Collected?`);
+    if (!ok) return;
+
+    try {
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        const form = new URLSearchParams();
+        form.append('action', 'update');
+        form.append('parcelID', parcelID);
+        form.append('status', 'Collected');
+
+        const res = await fetch('parcel_CRUD.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: form.toString()
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+            // Update UI: change card color to green and close details
+            const card = btn.closest('.order-card');
+            if (card) {
+                card.classList.remove('red');
+                card.classList.add('green');
+                card.classList.remove('open');
+                const toggle = card.querySelector('.toggle-btn');
+                if (toggle) toggle.classList.remove('open');
+            }
+
+            // Update in-memory parcels array so filters remain consistent
+            const idx = parcels.findIndex(p => p.orderid === parcelID);
+            if (idx !== -1) parcels[idx].color = 'green';
+
+            alert('Parcel marked as Paid/Collected');
+        } else {
+            alert('Failed to mark parcel: ' + (data.error || data.message || 'Unknown error'));
+            btn.disabled = false;
+            btn.textContent = 'Paid';
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Network error while updating parcel');
+        btn.disabled = false;
+        btn.textContent = 'Paid';
     }
 }
 

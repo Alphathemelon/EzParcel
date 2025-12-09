@@ -3,11 +3,15 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
 <nav style="background: #3454B4; padding: 12px 0; text-align:center;">
     <a href="orderhistory.php" class="<?= ($currentPage == 'orderhistory.php') ? 'active' : '' ?>">Order History</a>
-    <a href="parcelweightage.html" class="<?= ($currentPage == 'parcelrecord.php') ? 'active' : '' ?>">Parcel Record</a>
+    <a href="parcelweightage.php" class="<?= ($currentPage == 'parcelweightage.php') ? 'active' : '' ?>">Parcel Record</a>
     <a href="profile.php" class="<?= ($currentPage == 'profile.php') ? 'active' : '' ?>">Report</a>
 </nav>
 
 <style>
+nav {
+    width: 100%;
+    box-sizing: border-box;
+}
 nav a {
     color: white;
     text-decoration: none;

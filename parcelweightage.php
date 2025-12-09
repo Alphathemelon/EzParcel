@@ -5,141 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EZParcel – Scanner + Storage</title>
 
-<style>
-* { box-sizing: border-box; }
-
-body, html {
-    margin: 0;
-    padding: 0;
-    font-family: "Poppins", sans-serif;
-    background: #f6f5f7;
-    min-height: 100vh;
-
-    display: flex;
-    justify-content: center;
-    padding: 20px;
-}
-
-.hidden { display: none; }
-
-.container {
-    width: 100%;
-    max-width: 420px;
-    background: white;
-    padding: 25px;
-    border-radius: 20px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    text-align: center;
-}
-
-h2 {
-    font-size: 26px;
-    margin-bottom: 10px;
-    color: #3454B4;
-}
-
-.small-title {
-    color: #555;
-    margin-bottom: 20px;
-}
-
-video {
-    width: 100%;
-    height: auto;
-    max-height: 300px;
-    border-radius: 14px;
-    background: black;
-    margin-bottom: 12px;
-    object-fit: cover;
-}
-
-label {
-    font-size: 14px;
-    font-weight: 600;
-    text-align: left;
-    display: block;
-    margin-top: 12px;
-    color: #333;
-}
-
-input {
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    margin-top: 5px;
-    background: #f3f3f3;
-    font-size: 15px;
-}
-
-button {
-    width: 100%;
-    padding: 14px;
-    margin-top: 20px;
-    background: linear-gradient(to right, #3454B4, #2E3B99);
-    border: none;
-    border-radius: 20px;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-button:hover { opacity: 0.9; }
-
-.storage-header {
-    background: linear-gradient(to right, #3454B4, #2E3B99);
-    padding: 18px;
-    color: white;
-    font-size: 20px;
-    font-weight: bold;
-    border-radius: 12px;
-    margin-bottom: 20px;
-}
-
-#gridContainer {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    gap: 15px;
-    width: 100%;
-}
-
-.slot {
-    padding: 16px 0;
-    border-radius: 12px;
-    font-size: 18px;
-    font-weight: bold;
-    text-align: center;
-    cursor: pointer;
-    color: white;
-}
-
-.slot:hover { transform: scale(1.05); }
-
-.available { background: #28A745; }
-.selected { background: #DC3545; }
-
-#confirmBtn {
-    margin-top: 15px;
-    background: linear-gradient(to right, #28A745, #1E7E34);
-}
-
-#confirmBtn:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-}
-
-@media (max-width: 480px) {
-    h2 { font-size: 22px; }
-    .slot { font-size: 16px; padding: 14px 0; }
-}
-
-@media (max-width: 360px) {
-    #gridContainer {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-</style>
+    <link rel="stylesheet" href="css/parcelweightage.css">
 </head>
 
 <body>
@@ -263,22 +129,52 @@ function submitParcel() {
 }
 
 /* ===== GENERATE SLOTS ===== */
-function generateSlots() {
+async function generateSlots() {
     const container = document.getElementById("gridContainer");
     container.innerHTML = "";
+
+    // Fetch current occupied slots for this storage code
+    const shelfCode = window.currentShelfCode || '';
+
+    // Default: no occupied slots until we fetch
+    let occupied = new Set();
+
+    try {
+        const res = await fetch('parcel_CRUD.php?action=list');
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.data)) {
+            data.data.forEach(r => {
+                // match storage code and uncollected status
+                const code = (r.fld_parcel_storage || '').toString().toUpperCase();
+                const status = (r.fld_parcel_status || '').toString();
+                const loc = (r.fld_parcel_location || '').toString().padStart(2, '0');
+                if (code === shelfCode && status === 'Uncollected' && loc) {
+                    occupied.add(loc);
+                }
+            });
+        }
+    } catch (e) {
+        console.error('Could not fetch occupied slots', e);
+    }
 
     for (let i = 1; i <= 24; i++) {
         const num = i.toString().padStart(2, "0");
         const div = document.createElement("div");
 
-        div.className = "slot available";
-        div.textContent = num;
-
-        div.onclick = () => {
-            document.querySelectorAll(".slot.selected").forEach(el => el.classList.remove("selected"));
-            div.classList.add("selected");
-            updateConfirmButton();
-        };
+        // If occupied, mark disabled
+        if (occupied.has(num)) {
+            div.className = "slot disabled";
+            div.textContent = num;
+            div.setAttribute('aria-disabled', 'true');
+        } else {
+            div.className = "slot available";
+            div.textContent = num;
+            div.onclick = () => {
+                document.querySelectorAll(".slot.selected").forEach(el => el.classList.remove("selected"));
+                div.classList.add("selected");
+                updateConfirmButton();
+            };
+        }
 
         container.appendChild(div);
     }
@@ -334,7 +230,9 @@ function confirmLocation() {
     .then(res => res.json())
     .then(json => {
         if (json && json.success) {
-            showMessage('success', 'Parcel saved: ' + (json.message || 'OK'));
+            const statusText = json.status || 'Uncollected';
+            const fee = (json.amount !== undefined && json.amount !== null) ? parseFloat(json.amount).toFixed(2) : '0.00';
+            showMessage('success', `Parcel saved — Status: ${statusText} • Fee: RM${fee}`);
         } else {
             // server may return error message (e.g., duplicate)
             const msg = json && (json.error || json.message) ? (json.error || json.message) : 'Unknown error';

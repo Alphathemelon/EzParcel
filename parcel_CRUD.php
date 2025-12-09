@@ -25,14 +25,33 @@ try {
         $weight = $_POST['parcelWeight'] ?? $_POST['weight'] ?? null;
         $storage = trim($_POST['storage'] ?? $_POST['shelfTitle'] ?? '');
         $location = trim($_POST['location'] ?? $_POST['slot'] ?? '');
-        $amount = $_POST['amount'] ?? 0;
-        $status = $_POST['status'] ?? 'Incomplete';
+        $posted_amount = $_POST['amount'] ?? null;
+        $status = $_POST['status'] ?? null;
 
         if ($parcel_id === '' || $phone === '' || $weight === null) {
             http_response_code(400);
             echo json_encode(["success" => false, "error" => "Missing required fields: parcelID, phoneNumber, parcelWeight"]);
             exit;
         }
+
+        // Normalize storage to short code (S/M/L)
+        $storage_uc = strtoupper($storage);
+        $storage_code = '';
+        if ($storage_uc === 'S' || strpos($storage_uc, 'S') === 0) $storage_code = 'S';
+        elseif ($storage_uc === 'M' || strpos($storage_uc, 'M') === 0) $storage_code = 'M';
+        elseif ($storage_uc === 'L' || strpos($storage_uc, 'L') === 0) $storage_code = 'L';
+        else {
+            if (stripos($storage, 'SMALL') !== false) $storage_code = 'S';
+            elseif (stripos($storage, 'MEDIUM') !== false) $storage_code = 'M';
+            elseif (stripos($storage, 'LARGE') !== false) $storage_code = 'L';
+        }
+
+        // Map storage code to amount (fee)
+        $amount_map = ['S' => 2.0, 'M' => 3.0, 'L' => 5.0];
+        $amount = $amount_map[$storage_code] ?? ($posted_amount !== null ? (float)$posted_amount : 0.0);
+
+        // Default status should be Uncollected unless explicitly set to Collected
+        $status = ($status && strtolower($status) === 'collected') ? 'Collected' : 'Uncollected';
 
         // Duplicate check: if a parcel with same fld_parcel_ID exists, return informative error
         $chk = $conn->prepare("SELECT fld_parcel_ID FROM tbl_parcel_ezparcel WHERE fld_parcel_ID = :id LIMIT 1");
@@ -52,7 +71,7 @@ try {
         $stmt->execute([
             ':id' => $parcel_id,
             ':status' => $status,
-            ':storage' => $storage,
+            ':storage' => $storage_code,
             ':date' => $now,
             ':amount' => $amount,
             ':weight' => $weight,
@@ -60,7 +79,7 @@ try {
             ':phone' => $phone,
         ]);
 
-        echo json_encode(["success" => true, "message" => "Parcel created", "parcel_id" => $parcel_id]);
+        echo json_encode(["success" => true, "message" => "Parcel created", "parcel_id" => $parcel_id, "status" => $status, "amount" => $amount, "storage_code" => $storage_code]);
         exit;
     }
 
