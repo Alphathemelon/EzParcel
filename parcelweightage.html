@@ -285,17 +285,68 @@ function updateConfirmButton() {
 }
 
 function confirmLocation() {
-    const selected = document.querySelector(".slot.selected").textContent;
-    alert("Confirmed slot: " + selected);
+    const selectedEl = document.querySelector(".slot.selected");
+    if (!selectedEl) {
+        alert('No slot selected');
+        return;
+    }
 
-    storagePage.classList.add("hidden");
-    scannerPage.classList.remove("hidden");
+    const selected = selectedEl.textContent;
 
-    parcelID.value = "";
-    phoneNumber.value = "";
-    parcelWeight.value = "";
+    // gather values from the form
+    const parcel = document.getElementById('parcelID').value.trim();
+    const phone = document.getElementById('phoneNumber').value.trim();
+    const weight = document.getElementById('parcelWeight').value;
+    const storage = document.getElementById('shelfTitle').innerText || '';
+    const location = selected;
 
-    startCamera();
+    if (!parcel || !phone || !weight) {
+        alert('Missing parcel data. Please scan QR, enter phone and weight.');
+        return;
+    }
+
+    // Disable confirm button while sending
+    const btn = document.getElementById('confirmBtn');
+    btn.disabled = true;
+
+    // Prepare form data
+    const payload = new URLSearchParams();
+    payload.append('action', 'create');
+    payload.append('parcelID', parcel);
+    payload.append('phoneNumber', phone);
+    payload.append('parcelWeight', weight);
+    payload.append('storage', storage);
+    payload.append('location', location);
+
+    fetch('Curd.php?action=create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: payload.toString()
+    })
+    .then(res => res.json())
+    .then(json => {
+        if (json && json.success) {
+            alert('Parcel saved: ' + (json.message || 'OK'));
+        } else {
+            alert('Save failed: ' + (json && (json.error || json.message) ? (json.error || json.message) : 'Unknown error'));
+        }
+
+        // Reset UI and start camera again
+        document.getElementById('storagePage').classList.add('hidden');
+        document.getElementById('scannerPage').classList.remove('hidden');
+
+        document.getElementById('parcelID').value = '';
+        document.getElementById('phoneNumber').value = '';
+        document.getElementById('parcelWeight').value = '';
+        document.querySelectorAll('.slot.selected').forEach(el => el.classList.remove('selected'));
+
+        startCamera();
+    })
+    .catch(err => {
+        console.error('Network error:', err);
+        alert('Network error while saving parcel');
+    })
+    .finally(() => { btn.disabled = false; });
 }
 </script>
 
