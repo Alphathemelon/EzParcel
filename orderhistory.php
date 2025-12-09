@@ -101,7 +101,6 @@ function displayParcels(list) {
                     <b>Weight:</b> ${p.weight}<br>
                     ${p.color === 'red' ? `
                     <div class="action-buttons" style="margin-top:10px;">
-                        <button class="btn btn-edit" onclick="editParcel(this, '${p.orderid}')">Edit</button>
                         <button class="btn btn-paid" onclick="markPaid(this, '${p.orderid}')">Paid</button>
                     </div>
                     ` : ''}
@@ -149,13 +148,6 @@ function toggleDetails(el) {
     el.classList.toggle('open');
 }
 
-
-// Edit button handler ( blm settle lagi :> )
-function editParcel(btn, parcelID) {
-    // Redirect to parcelweightage.php with parcelID as query param for editing
-    const url = `parcelweightage.php?parcelID=${encodeURIComponent(parcelID)}`;
-    window.location.href = url;
-}
 
 // Mark parcel as Paid (Collected)
 async function markPaid(btn, parcelID) {

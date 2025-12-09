@@ -204,7 +204,6 @@ form.search-form {
 /* Buttons inside details */
 .action-buttons { display:flex; gap:10px; }
 .btn { padding:6px 10px; border-radius:6px; border:0; cursor:pointer; font-weight:600 }
-.btn-edit { background:#f0f0f0; color:#333 }
 .btn-paid { background:#4cd964; color:#fff }
 .btn:disabled { opacity:0.6; cursor:not-allowed }
 
