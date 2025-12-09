@@ -8,8 +8,8 @@
 
 </head>
 <body>
-
-    <div class="header">ORDER HISTORY</div>
+    <?php include 'navbar.php'; ?>
+    
 
 
 
