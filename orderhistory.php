@@ -71,7 +71,6 @@ let parcels = <?php
             "phone"   => $p["fld_user_phone"],
             "orderid" => $p["fld_parcel_ID"],
             "weight"  => $p["fld_parcel_weight"],
-            "color"   => ($p["fld_parcel_status"] === "Collected" ? "green" : "red")
             "color"   => ($p["fld_parcel_status"] === "Collected" ? "green" : "red"),
             "date"    => $p["fld_parcel_date"]
         ];
@@ -102,11 +101,12 @@ function displayParcels(list) {
                     <b>Order ID:</b> ${p.orderid}<br>
                     <b>Weight:</b> ${p.weight}<br>
                     ${p.color === 'red' ? `
+                    <b>Date:</b> ${p.date}
                     <div class="action-buttons" style="margin-top:10px;">
                         <button class="btn btn-paid" onclick="markPaid(this, '${p.orderid}')">Paid</button>
                     </div>
                     ` : ''}
-                    <b>Date:</b> ${p.date}
+                    
                 </div>
             </div>
         `;
