@@ -50,7 +50,7 @@ $conn = null;
 
 <div class="search-wrapper">
     <form class="search-form" onsubmit="event.preventDefault();" role="search">
-        <input id="search" class="search-input" type="search" placeholder="Search Order ID..." autofocus required />
+        <input id="code" class="search-input" type="search" placeholder="Search Order ID..." autofocus required />
         <button type="submit" class="search-btn">Go</button>    
     </form>
 </div>
@@ -58,9 +58,25 @@ $conn = null;
 <div id="parcelList"></div>
 
 <script>
+    // SEARCH FUNCTION
+document.getElementById("code").addEventListener("input", function () {
+    let keyword = this.value.trim().toLowerCase();
+
+    if (keyword === "") {
+        displayParcels(parcels);
+        return;
+    }
+
+    let filtered = parcels.filter(p =>
+        p.code.toLowerCase().includes(keyword)
+    );
+
+    displayParcels(filtered);
+});
+
 // ===================================
 // CLEAN PHP → JS data conversion
-// ===================================
+// =================================== 
 let parcels = <?php
     $clean = [];
 
