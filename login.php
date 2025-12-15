@@ -36,21 +36,29 @@ if (isset($_POST['signup'])) {
     try {
         $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+        
         // Check if email or phone already exists
         $stmt = $conn->prepare("SELECT * FROM tbl_user_ezparcel WHERE fld_user_email = :email OR fld_user_phone = :phone");
         $stmt->bindParam(':email', $_POST['email_signup']);
         $stmt->bindParam(':phone', $_POST['phone_signup']);
         $stmt->execute();
+        
         if ($stmt->fetch(PDO::FETCH_ASSOC)) {
             $signup_error = "Email or Phone already registered";
         } else {
-            $stmt = $conn->prepare("INSERT INTO tbl_user_ezparcel (fld_user_name, fld_user_email, fld_user_password, fld_user_phone) VALUES (:name, :email, :password, :phone)");
+            // FIXED: Added :level to VALUES clause
+            $stmt = $conn->prepare("INSERT INTO tbl_user_ezparcel (fld_user_name, fld_user_email, fld_user_password, fld_user_phone, fld_user_level) VALUES (:name, :email, :password, :phone, :level)");
+            
+            // Hash password before binding
+            $password_hashed = sha1($_POST['password_signup']);
+            $level = 1; // Set default level to 1
+            
             $stmt->bindParam(':name', $_POST['name_signup']);
             $stmt->bindParam(':email', $_POST['email_signup']);
             $stmt->bindParam(':password', $password_hashed);
             $stmt->bindParam(':phone', $_POST['phone_signup']);
-            $password_hashed = sha1($_POST['password_signup']); // boleh guna password_hash() untuk lebih secure
+            $stmt->bindParam(':level', $level);
+            
             $stmt->execute();
             $signup_success = "Account created successfully! You can now sign in.";
         }
