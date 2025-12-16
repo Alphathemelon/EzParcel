@@ -1,0 +1,22 @@
+<?php
+include 'database.php';
+
+$sql = "
+SELECT 
+    fld_parcel_date,
+    SUM(fld_parcel_status = 'Collected') AS collected,
+    SUM(fld_parcel_status = 'Uncollected') AS uncollected
+    FROM tbl_parcel_ezparcel
+    GROUP BY fld_parcel_date
+    ORDER BY fld_parcel_date
+";
+
+$result = $conn->query($sql);
+
+$data = [];
+while ($row = $result->fetch_assoc()) {
+    $data[] = $row;
+}
+
+header('Content-Type: application/json');
+echo json_encode($data);
