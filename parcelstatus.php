@@ -14,6 +14,9 @@ try {
     $stmt->execute();
     $parcels = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Ensure $parcels is always an array
+    if (!$parcels) $parcels = [];
+
 } catch (PDOException $e) {
     die("DB Error: " . $e->getMessage());
 }
@@ -65,8 +68,9 @@ h2 { margin-top:0; }
 <script>
 // PHP → JS
 let parcels = <?php echo json_encode($parcels, JSON_UNESCAPED_SLASHES); ?>;
+console.log("Parcels loaded:", parcels); // Debug: check all parcels
 
-// Map status
+// Map status to badge
 function mapStatus(status){
     return status.toLowerCase() === 'collected'
         ? { text: 'Complete', class: 'complete' }
