@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EZParcel – Scanner + Storage</title>
-
-    <link rel="stylesheet" href="css/parcelweightage.css">
+<link rel="stylesheet" href="css/parcelweightage.css">
 </head>
 
 <body>
@@ -22,8 +21,8 @@
     <label>Parcel QR Code</label>
     <input type="text" id="parcelID" readonly>
 
-    <label>Phone Number</label>
-    <input type="text" id="phoneNumber" placeholder="Enter phone number">
+    <label>Name</label>
+    <input type="text" id="userName" placeholder="Enter name">
 
     <label>Parcel Weight (KG)</label>
     <input type="number" id="parcelWeight" placeholder="Enter weight">
@@ -71,8 +70,6 @@ function startCamera() {
         .catch(err => console.error("Camera error:", err));
 }
 
-startCamera();
-
 function scanLoop() {
     if (!scanning) return;
 
@@ -99,31 +96,30 @@ function stopCamera() {
     if (stream) stream.getTracks().forEach(t => t.stop());
 }
 
+startCamera();
+
 /* ===== SUBMIT PARCEL ===== */
 function submitParcel() {
-    let parcel = parcelID.value.trim();
-    let phone = phoneNumber.value.trim();
-    let weight = parseFloat(parcelWeight.value);
+    let parcel = document.getElementById('parcelID').value.trim();
+    let name = document.getElementById('userName').value.trim();
+    let weight = parseFloat(document.getElementById('parcelWeight').value);
 
-    if (!parcel || !phone || !weight) {
-        showMessage('error', "Please scan QR, enter phone & weight.");
+    if (!parcel || !name || !weight) {
+        showMessage('error', "Please scan QR, enter name & weight.");
         return;
     }
 
-    // Determine storage code (S, M, L) and a human-friendly shelf title
     let shelfLabel = "";
     let shelfCode = "";
     if (weight <= 2) { shelfCode = 'S'; shelfLabel = "SMALL – SHELF B"; }
     else if (weight <= 5) { shelfCode = 'M'; shelfLabel = "MEDIUM – SHELF C"; }
     else { shelfCode = 'L'; shelfLabel = "LARGE – SHELF D"; }
 
-    // expose code for confirmLocation to use
     window.currentShelfCode = shelfCode;
+    document.getElementById('shelfTitle').innerText = shelfLabel;
 
-    shelfTitle.innerText = shelfLabel;
-
-    scannerPage.classList.add("hidden");
-    storagePage.classList.remove("hidden");
+    document.getElementById('scannerPage').classList.add("hidden");
+    document.getElementById('storagePage').classList.remove("hidden");
 
     generateSlots();
 }
@@ -133,10 +129,7 @@ async function generateSlots() {
     const container = document.getElementById("gridContainer");
     container.innerHTML = "";
 
-    // Fetch current occupied slots for this storage code
     const shelfCode = window.currentShelfCode || '';
-
-    // Default: no occupied slots until we fetch
     let occupied = new Set();
 
     try {
@@ -144,10 +137,9 @@ async function generateSlots() {
         const data = await res.json();
         if (data && data.success && Array.isArray(data.data)) {
             data.data.forEach(r => {
-                // match storage code and uncollected status
-                const code = (r.fld_parcel_storage || '').toString().toUpperCase();
+                const code = (r.fld_parcel_storage || '').toUpperCase();
                 const status = (r.fld_parcel_status || '').toString();
-                const loc = (r.fld_parcel_location || '').toString().padStart(2, '0');
+                const loc = (r.fld_parcel_location || '').toString().padStart(2,'0');
                 if (code === shelfCode && status === 'Uncollected' && loc) {
                     occupied.add(loc);
                 }
@@ -158,10 +150,9 @@ async function generateSlots() {
     }
 
     for (let i = 1; i <= 24; i++) {
-        const num = i.toString().padStart(2, "0");
+        const num = i.toString().padStart(2,"0");
         const div = document.createElement("div");
 
-        // If occupied, mark disabled
         if (occupied.has(num)) {
             div.className = "slot disabled";
             div.textContent = num;
@@ -175,7 +166,6 @@ async function generateSlots() {
                 updateConfirmButton();
             };
         }
-
         container.appendChild(div);
     }
 
@@ -184,47 +174,41 @@ async function generateSlots() {
 
 function updateConfirmButton() {
     const selected = document.querySelector(".slot.selected");
-    confirmBtn.disabled = !selected;
+    document.getElementById('confirmBtn').disabled = !selected;
 }
 
 function confirmLocation() {
     const selectedEl = document.querySelector(".slot.selected");
     if (!selectedEl) {
-        showMessage('error', 'No slot selected');
+        showMessage('error','No slot selected');
         return;
     }
 
     const selected = selectedEl.textContent;
-
-    // gather values from the form
     const parcel = document.getElementById('parcelID').value.trim();
-    const phone = document.getElementById('phoneNumber').value.trim();
+    const name = document.getElementById('userName').value.trim();
     const weight = document.getElementById('parcelWeight').value;
-    // Use the short shelf code for storage (S/M/L); fall back to shelfTitle text if missing
     const storage = window.currentShelfCode || document.getElementById('shelfTitle').innerText || '';
-    const location = selected;
 
-    if (!parcel || !phone || !weight) {
-        showMessage('error', 'Missing parcel data. Please scan QR, enter phone and weight.');
+    if (!parcel || !name || !weight) {
+        showMessage('error','Missing parcel data. Please scan QR, enter name and weight.');
         return;
     }
 
-    // Disable confirm button while sending
     const btn = document.getElementById('confirmBtn');
     btn.disabled = true;
 
-    // Prepare form data
     const payload = new URLSearchParams();
     payload.append('action', 'create');
     payload.append('parcelID', parcel);
-    payload.append('phoneNumber', phone);
+    payload.append('userName', name);
     payload.append('parcelWeight', weight);
     payload.append('storage', storage);
-    payload.append('location', location);
+    payload.append('location', selected);
 
     fetch('parcel_CRUD.php?action=create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: {'Content-Type':'application/x-www-form-urlencoded'},
         body: payload.toString()
     })
     .then(res => res.json())
@@ -234,17 +218,14 @@ function confirmLocation() {
             const fee = (json.amount !== undefined && json.amount !== null) ? parseFloat(json.amount).toFixed(2) : '0.00';
             showMessage('success', `Parcel saved — Status: ${statusText} • Fee: RM${fee}`);
         } else {
-            // server may return error message (e.g., duplicate)
             const msg = json && (json.error || json.message) ? (json.error || json.message) : 'Unknown error';
-            showMessage('error', 'Save failed: ' + msg);
+            showMessage('error','Save failed: ' + msg);
         }
 
-        // Reset UI and start camera again
         document.getElementById('storagePage').classList.add('hidden');
         document.getElementById('scannerPage').classList.remove('hidden');
-
         document.getElementById('parcelID').value = '';
-        document.getElementById('phoneNumber').value = '';
+        document.getElementById('userName').value = '';
         document.getElementById('parcelWeight').value = '';
         document.querySelectorAll('.slot.selected').forEach(el => el.classList.remove('selected'));
 
@@ -252,40 +233,27 @@ function confirmLocation() {
     })
     .catch(err => {
         console.error('Network error:', err);
-        showMessage('error', 'Network error while saving parcel');
+        showMessage('error','Network error while saving parcel');
     })
     .finally(() => { btn.disabled = false; });
 }
 
-// Inline message helper
-function showMessage(type, text, timeout = 5000) {
+function showMessage(type, text, timeout=5000){
     const box = document.getElementById('messageBox');
-    if (!box) return;
+    if(!box) return;
     box.innerHTML = '';
     const div = document.createElement('div');
-    div.className = 'msg ' + (type === 'success' ? 'success' : type === 'error' ? 'error' : 'info');
+    div.className = 'msg ' + (type==='success'?'success':type==='error'?'error':'info');
     div.textContent = text;
-    div.style.padding = '10px';
-    div.style.borderRadius = '8px';
-    div.style.fontWeight = '600';
-    div.style.textAlign = 'center';
-    if (type === 'success') {
-        div.style.background = '#d4edda';
-        div.style.color = '#155724';
-        div.style.border = '1px solid #c3e6cb';
-    } else if (type === 'error') {
-        div.style.background = '#f8d7da';
-        div.style.color = '#721c24';
-        div.style.border = '1px solid #f5c6cb';
-    } else {
-        div.style.background = '#d1ecf1';
-        div.style.color = '#0c5460';
-        div.style.border = '1px solid #bee5eb';
-    }
+    div.style.padding='10px';
+    div.style.borderRadius='8px';
+    div.style.fontWeight='600';
+    div.style.textAlign='center';
+    if(type==='success'){ div.style.background='#d4edda'; div.style.color='#155724'; div.style.border='1px solid #c3e6cb'; }
+    else if(type==='error'){ div.style.background='#f8d7da'; div.style.color='#721c24'; div.style.border='1px solid #f5c6cb'; }
+    else{ div.style.background='#d1ecf1'; div.style.color='#0c5460'; div.style.border='1px solid #bee5eb'; }
     box.appendChild(div);
-    if (timeout > 0) {
-        setTimeout(() => { if (box.contains(div)) box.removeChild(div); }, timeout);
-    }
+    if(timeout>0){ setTimeout(()=>{ if(box.contains(div)) box.removeChild(div); },timeout);}
 }
 </script>
 
