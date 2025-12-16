@@ -7,6 +7,7 @@
     <title>Report EzParcel</title>
 </head>
 <body>
+    <h1>Report EzParcel</h1>
     <div>
         <canvas id="myChart"></canvas>
     </div>
@@ -14,6 +15,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 
-    <script src="report.js"></script>
+    <script src="js/report.js"></script>
 </body>
 </html>
