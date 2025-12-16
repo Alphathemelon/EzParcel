@@ -12,8 +12,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-
     <script src="report.js"></script>
 </body>
 </html>
