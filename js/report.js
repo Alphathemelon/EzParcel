@@ -18,17 +18,17 @@ fetch("script.php")
           {
             label: 'Size S',
             data: sizeS,
-            backgroundColor: 'rgba(65,105,225,0.7)'
+            backgroundColor: '#3498db'
           },
           {
             label: 'Size M',
             data: sizeM,
-            backgroundColor: 'rgba(255,165,0,0.7)'
+            backgroundColor: '#34495e'
           },
           {
             label: 'Size L',
             data: sizeL,
-            backgroundColor: 'rgba(34,139,34,0.7)'
+            backgroundColor: '#154360'
           }
         ]
       },
