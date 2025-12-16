@@ -1,6 +1,6 @@
 <?php
-// Curd.php — simplified CRUD for `tbl_parcel_ezparcel`
-// Accepts fields used by `parcelweightage.html` and returns JSON responses.
+// Curd.php — simplified CRUD for tbl_parcel_ezparcel
+// Accepts fields used by parcelweightage.html and returns JSON responses.
 
 header('Content-Type: application/json; charset=utf-8');
 include_once 'database.php';
@@ -18,7 +18,7 @@ try {
 $action = $_REQUEST['action'] ?? '';
 
 try {
-    // CREATE — accept parcelweightage.html names (`parcelID`, `phoneNumber`, `parcelWeight`, `storage`, `location`)
+    // CREATE — accept parcelweightage.html names (parcelID, phoneNumber, parcelWeight, storage, location)
     if (($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create'])) || $action === 'create') {
         $parcel_id = trim($_POST['parcelID'] ?? $_POST['parcel_id'] ?? '');
         $phone = trim($_POST['phoneNumber'] ?? $_POST['phone'] ?? '');
