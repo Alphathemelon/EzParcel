@@ -2,12 +2,16 @@
     margin :0;
     padding: 0;
     box-sizing: border-box;
+    font-family: Arial, sans-serif;
 }
 body{
     font-family: Arial, sans-serif;
     min-height: 100vh;
     color : #555;
     background-color: #fff;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
 }
 h2{
     text-align: center;
@@ -18,4 +22,66 @@ h2{
 	height: 650px;
 	padding : 50px;
 	margin: 0 auto;
+}
+
+.parent {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 8px;
+}
+    
+.div1 {
+    grid-column: span 2 / span 2;
+    grid-row: span 2 / span 2;
+    position: relative; /* Penting untuk Chart.js responsive */
+    width: 100%;       /* Paksa lebar penuh */
+    height: 100%;      /* Paksa tinggi penuh */
+    min-height: 300px; /* Tetapkan tinggi minima supaya graf tak penyek */
+}
+
+.div2 {
+    grid-column: span 2 / span 2;
+    grid-row: span 2 / span 2;
+    grid-column-start: 3;
+    position: relative; /* Penting untuk Chart.js responsive */
+    width: 100%;       /* Paksa lebar penuh */
+    height: 100%;      /* Paksa tinggi penuh */
+    min-height: 300px; /* Tetapkan tinggi minima supaya graf tak penyek */
+}
+
+.div3 {
+    grid-column: span 2 / span 2;
+    grid-row: span 2 / span 2;
+    grid-column-start: 5;
+    position: relative; /* Penting untuk Chart.js responsive */
+    width: 100%;       /* Paksa lebar penuh */
+    height: 100%;      /* Paksa tinggi penuh */
+    min-height: 300px; /* Tetapkan tinggi minima supaya graf tak penyek */
+    
+}
+
+.div4 {
+    grid-column: span 3 / span 3;
+    grid-row: span 3 / span 3;
+    grid-row-start: 3;
+    position: relative; /* Penting untuk Chart.js responsive */
+    width: 100%;       /* Paksa lebar penuh */
+    height: 100%;      /* Paksa tinggi penuh */
+    min-height: 300px; /* Tetapkan tinggi minima supaya graf tak penyek */
+}
+
+.div5 {
+    grid-column: span 3 / span 3;
+    grid-row: span 3 / span 3;
+    grid-column-start: 4;
+    grid-row-start: 3;
+    position: relative; /* Penting untuk Chart.js responsive */
+    width: 100%;       /* Paksa lebar penuh */
+    height: 100%;      /* Paksa tinggi penuh */
+    min-height: 300px; /* Tetapkan tinggi minima supaya graf tak penyek */
+}
+canvas {
+    width: 100% !important;
+    height: 100% !important;
 }
