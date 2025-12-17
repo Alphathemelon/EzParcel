@@ -1,26 +1,23 @@
+// File: js/report3.js
 document.addEventListener('DOMContentLoaded', function() {
-    function updateDashboard() {
-        fetch('script3.php')
-            .then(response => response.json())
-            .then(data => {
-                const displayElement = document.getElementById('displayAmount');
-                const lastUpdated = document.getElementById('lastUpdated');
-
-                if (displayElement && lastUpdated) {
-                    let amount = parseFloat(data.total_today).toFixed(2);
-                    displayElement.innerText = 'RM ' + amount;
-
-                    // Set masa update
-                    const now = new Date();
-                    lastUpdated.innerText = now.toLocaleTimeString();
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('displayAmount').innerText = 'RM Error';
-            });
-    }
-
-    updateDashboard(); // panggil sekali masa load
-    setInterval(updateDashboard, 60000); // auto refresh setiap 60 saat
+    // Pastikan nama file PHP ini betul (report3.php atau script3.php)
+    fetch('script3.php')
+        .then(response => response.json())
+        .then(data => {
+            // Cari H1 dengan id 'displayAmount'
+            const displayElement = document.getElementById('displayAmount');
+            if (displayElement) {
+                // Format duit dengan 2 titik perpuluhan
+                let amount = parseFloat(data.total_today).toFixed(2);
+                // Masukkan ke dalam H1
+                displayElement.innerText = 'RM ' + amount;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            const displayElement = document.getElementById('displayAmount');
+            if (displayElement) {
+                displayElement.innerText = 'RM Error';
+            }
+        });
 });
