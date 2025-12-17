@@ -7,17 +7,30 @@ try {
     $conn = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8mb4", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Get all parcels
-    $stmt = $conn->prepare("
-        SELECT fld_parcel_ID, fld_parcel_status
-        FROM tbl_parcel_ezparcel
-        ORDER BY fld_parcel_date DESC
-    ");
+    // Keep a small parcel list for search functionality (main parcel table)
+    $stmt = $conn->prepare("SELECT fld_parcel_ID, fld_parcel_status FROM tbl_parcel_ezparcel");
     $stmt->execute();
     $parcels = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Ensure $parcels is always an array
     if (!$parcels) $parcels = [];
+
+    // Describe collection table to build headers
+    $cols = [];
+    try {
+        $colStmt = $conn->query("DESCRIBE tbl_parcelcollection_ezparcel");
+        $colInfo = $colStmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($colInfo as $c) $cols[] = $c['Field'];
+    } catch (Exception $e) {
+        // table may not exist yet — leave columns empty
+        $cols = [];
+    }
+
+    // Fetch collection rows for the logged-in user
+    $collections = [];
+    if (!empty($_SESSION['user_email']) && !empty($cols)) {
+        $cstmt = $conn->prepare("SELECT * FROM tbl_parcelcollection_ezparcel WHERE fld_user_email = :email");
+        $cstmt->execute([':email' => $_SESSION['user_email']]);
+        $collections = $cstmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
 } catch (PDOException $e) {
     die("DB Error: " . $e->getMessage());
@@ -62,15 +75,25 @@ h2 { margin-top:0; }
         <button id="backBtn" onclick="backToList()" style="display:none;">Back</button>
     </div>
 
-    <ul id="parcelList">
-        <li style="color:#888;">Loading parcels...</li>
-    </ul>
+    <div id="statusMessage" style="margin-bottom:12px;min-height:26px"></div>
+
+    <div id="collectionWrap">
+        <table id="collectionTable" style="width:100%;border-collapse:collapse;">
+            <thead id="collectionHead">
+                <!-- headers injected by JS -->
+            </thead>
+            <tbody id="collectionBody">
+                <!-- rows injected by JS -->
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
 // PHP → JS
 let parcels = <?php echo json_encode($parcels, JSON_UNESCAPED_SLASHES); ?>;
-console.log("Parcels loaded:", parcels); // Debug: check all parcels
+let collectionCols = <?php echo json_encode($cols ?? [], JSON_UNESCAPED_SLASHES); ?>;
+let collections = <?php echo json_encode($collections ?? [], JSON_UNESCAPED_SLASHES); ?>;
 
 // Map status to badge
 function mapStatus(status){
@@ -80,27 +103,46 @@ function mapStatus(status){
 }
 
 // Render parcels
-function renderParcels(list){
-    const ul = document.getElementById('parcelList');
-    ul.innerHTML = '';
-    if(!list.length){ 
-        ul.innerHTML = '<li style="color:#888;">No parcels found</li>'; 
-        return; 
+// Render collection table headers and rows
+function renderCollections(list){
+    const head = document.getElementById('collectionHead');
+    const body = document.getElementById('collectionBody');
+    head.innerHTML = '';
+    body.innerHTML = '';
+
+    // Build header based on discovered columns; if none, display placeholder
+    if (!collectionCols || collectionCols.length === 0) {
+        head.innerHTML = `<tr><th>No collection table available</th></tr>`;
+        return;
     }
 
-    list.forEach(p=>{
-        const status = mapStatus(p.fld_parcel_status);
-        ul.innerHTML += `<li>
-            <span>${p.fld_parcel_ID}</span>
-            <span class="badge ${status.class}">${status.text}</span>
-        </li>`;
+    let hrow = '<tr>';
+    collectionCols.forEach(c => { hrow += `<th style="text-align:left;padding:8px;border-bottom:1px solid #eee">${c}</th>`; });
+    hrow += '</tr>';
+    head.innerHTML = hrow;
+
+    if (!list || list.length === 0) {
+        // empty body but keep headers
+        return;
+    }
+
+    list.forEach(r => {
+        let row = '<tr>';
+        collectionCols.forEach(c => {
+            const v = r[c] !== undefined && r[c] !== null ? String(r[c]) : '';
+            row += `<td style="padding:8px;border-bottom:1px solid #f2f2f2">${escapeHtml(v)}</td>`;
+        });
+        row += '</tr>';
+        body.innerHTML += row;
     });
 }
 
 // Search
 function searchTracking(){
-    const keyword = document.getElementById('trackingInput').value.trim().toLowerCase();
+    const keyword = document.getElementById('trackingInput').value.trim();
     const backBtn = document.getElementById('backBtn');
+    const msg = document.getElementById('statusMessage');
+    msg.innerHTML = '';
 
     if(!keyword){ 
         renderParcels(parcels); 
@@ -108,8 +150,26 @@ function searchTracking(){
         return; 
     }
 
-    const filtered = parcels.filter(p => p.fld_parcel_ID.toLowerCase().includes(keyword));
-    renderParcels(filtered);
+    const keyLower = keyword.toLowerCase();
+    // Exact match first
+    const exact = parcels.find(p => p.fld_parcel_ID.toLowerCase() === keyLower);
+    if (exact) {
+        // If parcel exists, determine readiness
+        const status = (exact.fld_parcel_status || '').toLowerCase();
+        if (status === 'collected') {
+            msg.innerHTML = `<div style="padding:10px;border-radius:8px;background:#fff3cd;color:#856404;border:1px solid #ffeeba">Parcel <strong>${escapeHtml(keyword)}</strong> has already been collected.</div>`;
+        } else {
+            msg.innerHTML = `<div style="padding:10px;border-radius:8px;background:#d4edda;color:#155724;border:1px solid #c3e6cb">Parcel <strong>${escapeHtml(keyword)}</strong> is ready to be collected.</div>`;
+        }
+
+        renderParcels([exact]);
+        backBtn.style.display = 'inline-block';
+        return;
+    }
+
+    // No exact match — show failure
+    msg.innerHTML = `<div style="padding:10px;border-radius:8px;background:#f8d7da;color:#721c24;border:1px solid #f5c6cb">No parcel found with ID <strong>${escapeHtml(keyword)}</strong>. It has not arrived yet.</div>`;
+    renderParcels([]);
     backBtn.style.display = 'inline-block';
 }
 
@@ -124,15 +184,32 @@ async function pasteClipboard(){
     }
 }
 
+// Simple HTML escape
+function escapeHtml(unsafe) {
+    return unsafe.replace(/[&<"'`=\/]/g, function (s) {
+        return ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+            '/': '&#x2F;',
+            '`': '&#x60;',
+            '=': '&#x3D;'
+        })[s];
+    });
+}
+
 // Back to full list
 function backToList(){
     document.getElementById('trackingInput').value = '';
-    renderParcels(parcels);
+    document.getElementById('statusMessage').innerHTML = '';
+    renderCollections(collections);
     document.getElementById('backBtn').style.display = 'none';
 }
 
 // Initial render
-renderParcels(parcels);
+renderCollections(collections);
 </script>
 
 </body>
