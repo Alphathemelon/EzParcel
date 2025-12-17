@@ -13,14 +13,22 @@
     <div class="parent">
 
         <div class="div1">
-            <h4>Total Earning Today</h4>
-            <h1 id="displayAmount"></h1>
-            <script src="js/report3.js"></script> 
+            <div class="card">
+                <h4>Total Earning Today</h4>
+                <h1 id="displayAmount"></h1>
+                <script src="js/report3.js"></script> 
+            </div>
         </div>
 
-        <div class="div2">
-            total parcel arrived today
+       <div class="div2">
+            <div class="card">
+                <h4>Total Parcel Today</h4>
+                <h1 id="displayCollected">0</h1>
+                <p class="update-time">Last updated: <span id="lastUpdatedCollected"></span></p>
+                <script src="js/report5.js"></script> 
+            </div>
         </div>
+
 
         <div class="div3">
             <h4>Weekly Amount Parcel</h4>
