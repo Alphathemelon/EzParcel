@@ -10,9 +10,7 @@
 <body>
 
 <?php include 'navbar.php'; ?>
-
     <div class="parent">
-
         <div class="div1">
             <div class="card">
                 <h4>Total Earning Today</h4>
@@ -31,19 +29,31 @@
 
 
         <div class="div3">
-            <h4>Weekly Amount Parcel</h4>
-            <canvas id="amountChart"></canvas>
+            <div class="card">
+                <h4>Weekly Amount Parcel</h4>
+                <div class="chart-container">
+                    <canvas id="amountChart"></canvas>
+                </div>
+            </div>
         </div>
 
         <div class="div4">
-            <h4>Weekly Parcel Weigthage </h4>
-       	    <canvas id="myChart"></canvas>
+            <div class="card">
+                <h4>Weekly Parcel Weightage </h4>
+                <div class="chart-container">
+                    <canvas id="myChart"></canvas>
+                </div>
+            </div>
         </div>
     
         
         <div class="div5">
-            <h4>Weekly Parcel Status </h4>
-            <canvas id="statusChart"></canvas>
+            <div class="card">
+                <h4>Weekly Parcel Status </h4>
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
         </div>
 
     </div>
