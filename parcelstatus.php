@@ -1,4 +1,6 @@
 <?php
+include_once 'auth.php';
+authorize([2]);
 include_once 'database.php';
 
 try {
