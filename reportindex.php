@@ -17,6 +17,7 @@
             <div class="card">
                 <h4>Total Earning Today</h4>
                 <h1 id="displayAmount"></h1>
+                <p class="update-time">Last updated: <span id="lastUpdated"></span></p>
             </div>
         </div>
 
