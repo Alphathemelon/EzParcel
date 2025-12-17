@@ -21,12 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
-<<<<<<< HEAD
     updateDashboard(); // panggil sekali masa load
     setInterval(updateDashboard, 60000); // auto refresh setiap 60 saat
 });
-=======
-    //updateDashboard(); // panggil sekali masa load
-    //setInterval(updateDashboard, 60000); // auto refresh setiap 60 saat
-});
->>>>>>> cd994841fde612a942057d3b690c3aa334ad6cb0
