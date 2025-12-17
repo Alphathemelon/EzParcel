@@ -7,11 +7,8 @@
 body{
     font-family: Arial, sans-serif;
     min-height: 100vh;
-    color : #555;
     background-color: #fff;
     padding: 20px;
-    display: flex;
-    justify-content: center;
 }
 h2{
     text-align: center;
@@ -27,9 +24,11 @@ h2{
 .parent {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(5, 1fr);
-    gap: 8px;
+    grid-auto-rows: 150px; /* tetap semua row 300px */
+    gap: 16px;
+    width: 100%;
 }
+
     
 .div1 {
     grid-column: span 2 / span 2;
@@ -41,7 +40,7 @@ h2{
 }
 
 .div2 {
-    grid-column: span 2 / span 2;
+     grid-column: span 2 / span 2;
     grid-row: span 2 / span 2;
     grid-column-start: 3;
     position: relative; /* Penting untuk Chart.js responsive */
@@ -50,16 +49,17 @@ h2{
     min-height: 300px; /* Tetapkan tinggi minima supaya graf tak penyek */
 }
 
+
 .div3 {
-    grid-column: span 2 / span 2;
+     grid-column: span 2 / span 2;
     grid-row: span 2 / span 2;
     grid-column-start: 5;
     position: relative; /* Penting untuk Chart.js responsive */
     width: 100%;       /* Paksa lebar penuh */
     height: 100%;      /* Paksa tinggi penuh */
     min-height: 300px; /* Tetapkan tinggi minima supaya graf tak penyek */
-    
 }
+
 
 .div4 {
     grid-column: span 3 / span 3;
@@ -84,4 +84,8 @@ h2{
 canvas {
     width: 100% !important;
     height: 100% !important;
+}
+#amountChart {
+    width: 100%;
+    height: 400px; /* wajib ada */
 }

@@ -5,9 +5,9 @@ $sql = "
 SELECT 
     fld_parcel_date,
     SUM(fld_parcel_amount) AS total_amount
-FROM tbl_parcel_ezparcel
-GROUP BY fld_parcel_date
-ORDER BY fld_parcel_date
+    FROM tbl_parcel_ezparcel
+    GROUP BY fld_parcel_date
+    ORDER BY fld_parcel_date
 ";
 
 $result = $conn->query($sql);
