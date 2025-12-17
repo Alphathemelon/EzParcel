@@ -87,8 +87,60 @@ try {
         echo json_encode(["success" => true, "data" => $rows]);
         exit;
     }
+    // UPDATE — update fields by parcel ID
+    if (($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) || $action === 'update') {
+        $parcel_id = trim($_POST['parcelID'] ?? $_POST['parcel_id'] ?? '');
+        if ($parcel_id === '') {
+            http_response_code(400);
+            echo json_encode(["success" => false, "error" => "parcelID is required"]);
+            exit;
+        }
 
-    // UPDATE and DELETE remain unchanged, just make sure they also use fld_user_name instead of phone if needed
+        $allowed = ['status' => 'fld_parcel_status', 'storage' => 'fld_parcel_storage', 'amount' => 'fld_parcel_amount', 'weight' => 'fld_parcel_weight', 'location' => 'fld_parcel_location', 'userName' => 'fld_user_name'];
+        $sets = [];
+        $params = [':id' => $parcel_id];
+
+        foreach ($allowed as $k => $col) {
+            if (isset($_POST[$k])) {
+                $param = ':' . $k;
+                $sets[] = "$col = $param";
+                $params[$param] = $_POST[$k];
+            }
+        }
+
+        if (empty($sets)) {
+            echo json_encode(["success" => false, "message" => "No fields to update"]);
+            exit;
+        }
+
+        $sql = "UPDATE tbl_parcel_ezparcel SET " . implode(', ', $sets) . " WHERE fld_parcel_ID = :id";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
+
+        echo json_encode(["success" => true, "message" => "Parcel updated", "parcel_id" => $parcel_id]);
+        exit;
+    }
+
+    // DELETE
+    if (($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'])) || $action === 'delete') {
+        $parcel_id = trim($_POST['parcelID'] ?? $_POST['parcel_id'] ?? $_POST['id'] ?? '');
+        if ($parcel_id === '') {
+            http_response_code(400);
+            echo json_encode(["success" => false, "error" => "parcelID is required"]);
+            exit;
+        }
+
+        $stmt = $conn->prepare("DELETE FROM tbl_parcel_ezparcel WHERE fld_parcel_ID = :id");
+        $stmt->execute([':id' => $parcel_id]);
+
+        echo json_encode(["success" => true, "message" => "Parcel deleted", "parcel_id" => $parcel_id]);
+        exit;
+    }
+
+    // If no known action provided, return helpful message
+    http_response_code(400);
+    echo json_encode(["success" => false, "error" => "No valid action. Use action=create|list|update|delete or submit form fields 'create','update','delete'."]);
+    exit;
 
 } catch (PDOException $e) {
     http_response_code(500);
