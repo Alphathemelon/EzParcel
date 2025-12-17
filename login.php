@@ -63,7 +63,7 @@ if (isset($_POST['signup'])) {
             
             // Hash password before binding
             $password_hashed = sha1($_POST['password_signup']);
-            $level = 1; // Set default level to 1
+            $level = 2; // Set default level to 1
             
             $stmt->bindParam(':name', $_POST['name_signup']);
             $stmt->bindParam(':email', $_POST['email_signup']);
