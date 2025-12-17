@@ -26,8 +26,9 @@ try {
 
     // Fetch collection rows for the logged-in user
     $collections = [];
-    if (!empty($_SESSION['user_email']) && !empty($cols)) {
-        $cstmt = $conn->prepare("SELECT * FROM tbl_parcelcollection_ezparcel WHERE fld_user_email = :email");
+    if (!empty($_SESSION['user_email'])) {
+        // Join collection rows with parcel status from main table
+        $cstmt = $conn->prepare("SELECT c.fld_parcel_ID, COALESCE(p.fld_parcel_status,'') AS fld_parcel_status, COALESCE(p.fld_parcel_amount,0) AS fld_parcel_amount FROM tbl_parcelcollection_ezparcel c LEFT JOIN tbl_parcel_ezparcel p ON p.fld_parcel_ID = c.fld_parcel_ID WHERE c.fld_user_email = :email ORDER BY c.fld_id DESC");
         $cstmt->execute([':email' => $_SESSION['user_email']]);
         $collections = $cstmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -59,6 +60,13 @@ h2 { margin-top:0; }
 .badge { padding:4px 12px; border-radius:20px; font-size:13px; font-weight:bold; }
 .badge.complete { background:#d4edda; color:#155724; }
 .badge.incomplete { background:#f8d7da; color:#721c24; }
+/* Detail pop-out overlay (centered modal-style) */
+#detailOverlay { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); z-index:9999; }
+#detailOverlay.open { display:flex; }
+#parcelDetailBox { width:340px; background:#fff; border-radius:10px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,0.2); transform:translateY(8px) scale(.98); opacity:0; transition: transform 200ms ease, opacity 200ms ease; }
+#detailOverlay.open #parcelDetailBox { transform:translateY(0) scale(1); opacity:1; }
+#parcelDetailBox .pay-btn { padding:8px 12px;border-radius:8px;border:0;background:#1f6fff;color:#fff;cursor:pointer }
+#parcelDetailBox .pay-btn.hidden { display:none }
 </style>
 </head>
 <body>
@@ -78,6 +86,7 @@ h2 { margin-top:0; }
     <div id="statusMessage" style="margin-bottom:12px;min-height:26px"></div>
 
     <div id="collectionWrap">
+        <!-- detail pop-out moved to overlay below -->
         <table id="collectionTable" style="width:100%;border-collapse:collapse;">
             <thead id="collectionHead">
                 <!-- headers injected by JS -->
@@ -88,6 +97,22 @@ h2 { margin-top:0; }
         </table>
     </div>
 </div>
+
+    <!-- Detail overlay (pop-out) -->
+    <div id="detailOverlay" aria-hidden="true">
+        <div id="parcelDetailBox" role="dialog" aria-modal="true">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <strong id="detailParcelID">Parcel ID</strong>
+                <button id="closeDetailBtn" style="background:transparent;border:0;font-size:18px;cursor:pointer">✕</button>
+            </div>
+            <div style="margin-top:10px">
+                <div><strong>Price:</strong> RM <span id="detailParcelPrice">0.00</span></div>
+            </div>
+            <div style="margin-top:12px">
+                <button id="payQrBtn" class="pay-btn" type="button">Pay via Qr</button>
+            </div>
+        </div>
+    </div>
 
 <script>
 // PHP → JS
@@ -103,49 +128,77 @@ function mapStatus(status){
 }
 
 // Render parcels
-// Render collection table headers and rows
+// Render collections as simple two-column table: Parcel ID and Status
 function renderCollections(list){
     const head = document.getElementById('collectionHead');
     const body = document.getElementById('collectionBody');
     head.innerHTML = '';
     body.innerHTML = '';
 
-    // Build header based on discovered columns; if none, display placeholder
-    if (!collectionCols || collectionCols.length === 0) {
-        head.innerHTML = `<tr><th>No collection table available</th></tr>`;
-        return;
-    }
-
-    let hrow = '<tr>';
-    collectionCols.forEach(c => { hrow += `<th style="text-align:left;padding:8px;border-bottom:1px solid #eee">${c}</th>`; });
-    hrow += '</tr>';
-    head.innerHTML = hrow;
+    // Header: Parcel ID | Status
+    head.innerHTML = '<tr><th style="text-align:left;padding:8px;border-bottom:1px solid #eee">Parcel ID</th><th style="text-align:left;padding:8px;border-bottom:1px solid #eee">Status</th></tr>';
 
     if (!list || list.length === 0) {
-        // empty body but keep headers
+        // keep headers, empty body
         return;
     }
 
     list.forEach(r => {
-        let row = '<tr>';
-        collectionCols.forEach(c => {
-            const v = r[c] !== undefined && r[c] !== null ? String(r[c]) : '';
-            row += `<td style="padding:8px;border-bottom:1px solid #f2f2f2">${escapeHtml(v)}</td>`;
-        });
-        row += '</tr>';
+        const pid = r.fld_parcel_ID ?? r.fld_tracking_number ?? '';
+        const st = r.fld_parcel_status ?? r.status ?? '';
+        const amt = (r.fld_parcel_amount !== undefined) ? parseFloat(r.fld_parcel_amount).toFixed(2) : '';
+        const row = `<tr><td style="padding:8px;border-bottom:1px solid #f2f2f2"><a href="#" class="parcel-link" data-pid="${escapeHtml(pid)}" data-amt="${escapeHtml(amt)}" data-status="${escapeHtml(st)}">${escapeHtml(pid)}</a></td><td style="padding:8px;border-bottom:1px solid #f2f2f2">${escapeHtml(st)}</td></tr>`;
         body.innerHTML += row;
     });
 }
 
+// Show detail box for a parcel id and amount (from element)
+function showParcelDetailFromEl(el){
+    const id = el.dataset.pid || '';
+    const amount = el.dataset.amt || '';
+    const status = (el.dataset.status || '').toLowerCase();
+    showParcelDetail(id, amount, status);
+}
+
+function showParcelDetail(id, amount, status){
+    const overlay = document.getElementById('detailOverlay');
+    document.getElementById('detailParcelID').textContent = id;
+    document.getElementById('detailParcelPrice').textContent = (amount !== '') ? amount : '0.00';
+    const payBtn = document.getElementById('payQrBtn');
+    if (status === 'collected') {
+        payBtn.classList.add('hidden');
+    } else {
+        payBtn.classList.remove('hidden');
+    }
+    overlay.classList.add('open');
+}
+
+document.getElementById('closeDetailBtn').addEventListener('click', function(){
+    document.getElementById('detailOverlay').classList.remove('open');
+});
+
+// Close when clicking on overlay background (outside the box)
+document.getElementById('detailOverlay').addEventListener('click', function(e){
+    if (e.target === this) this.classList.remove('open');
+});
+
+// Event delegation: handle clicks on parcel links inside the collection table
+document.getElementById('collectionBody').addEventListener('click', function(e){
+    const a = e.target.closest && e.target.closest('a.parcel-link');
+    if (!a) return;
+    e.preventDefault();
+    showParcelDetailFromEl(a);
+});
+
 // Search
-function searchTracking(){
+async function searchTracking(){
     const keyword = document.getElementById('trackingInput').value.trim();
     const backBtn = document.getElementById('backBtn');
     const msg = document.getElementById('statusMessage');
     msg.innerHTML = '';
 
     if(!keyword){ 
-        renderParcels(parcels); 
+        renderCollections(collections); 
         backBtn.style.display = 'none';
         return; 
     }
@@ -156,20 +209,52 @@ function searchTracking(){
     if (exact) {
         // If parcel exists, determine readiness
         const status = (exact.fld_parcel_status || '').toLowerCase();
+        // If already collected, treat as failure per request
         if (status === 'collected') {
-            msg.innerHTML = `<div style="padding:10px;border-radius:8px;background:#fff3cd;color:#856404;border:1px solid #ffeeba">Parcel <strong>${escapeHtml(keyword)}</strong> has already been collected.</div>`;
-        } else {
-            msg.innerHTML = `<div style="padding:10px;border-radius:8px;background:#d4edda;color:#155724;border:1px solid #c3e6cb">Parcel <strong>${escapeHtml(keyword)}</strong> is ready to be collected.</div>`;
+            msg.innerHTML = `<div style="padding:10px;border-radius:8px;background:#f8d7da;color:#721c24;border:1px solid #f5c6cb">No parcel found with ID <strong>${escapeHtml(keyword)}</strong>. It has not arrived yet.</div>`;
+            renderCollections(collections);
+            backBtn.style.display = 'inline-block';
+            return;
         }
 
-        renderParcels([exact]);
-        backBtn.style.display = 'inline-block';
-        return;
+        // Not collected — add to collection table server-side
+        try {
+            const form = new URLSearchParams();
+            form.append('parcelID', exact.fld_parcel_ID);
+
+            const resp = await fetch('parcel_collection.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: form.toString()
+            });
+            const j = await resp.json();
+            if (resp.ok && j.success) {
+                // Update local collections: push the minimal record if not already present
+                const newRow = { fld_parcel_ID: exact.fld_parcel_ID, fld_parcel_status: exact.fld_parcel_status };
+                if (!collections.some(c => (c.fld_parcel_ID || '').toLowerCase() === (newRow.fld_parcel_ID || '').toLowerCase())) {
+                    collections = collections.concat([newRow]);
+                }
+                msg.innerHTML = `<div style="padding:10px;border-radius:8px;background:#d4edda;color:#155724;border:1px solid #c3e6cb">Parcel <strong>${escapeHtml(keyword)}</strong> is ready to be collected.</div>`;
+                renderCollections(collections);
+                backBtn.style.display = 'inline-block';
+                return;
+            } else {
+                msg.innerHTML = `<div style="padding:10px;border-radius:8px;background:#f8d7da;color:#721c24;border:1px solid #f5c6cb">No parcel found with ID <strong>${escapeHtml(keyword)}</strong>. It has not arrived yet.</div>`;
+                renderCollections(collections);
+                backBtn.style.display = 'inline-block';
+                return;
+            }
+        } catch (e) {
+            msg.innerHTML = `<div style="padding:10px;border-radius:8px;background:#f8d7da;color:#721c24;border:1px solid #f5c6cb">Unable to record parcel. Try again later.</div>`;
+            renderCollections(collections);
+            backBtn.style.display = 'inline-block';
+            return;
+        }
     }
 
     // No exact match — show failure
     msg.innerHTML = `<div style="padding:10px;border-radius:8px;background:#f8d7da;color:#721c24;border:1px solid #f5c6cb">No parcel found with ID <strong>${escapeHtml(keyword)}</strong>. It has not arrived yet.</div>`;
-    renderParcels([]);
+    renderCollections(collections);
     backBtn.style.display = 'inline-block';
 }
 
