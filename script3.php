@@ -2,10 +2,14 @@
 // File: report3.php (Pastikan file ini duduk sebaris dengan reportindex.php)
 include 'database.php';
 
+date_default_timezone_set('Asia/Kuala_Lumpur');
+
+$today = date('Y-m-d');
+
 $sql = "
 SELECT SUM(fld_parcel_amount) AS total_today 
 FROM tbl_parcel_ezparcel 
-WHERE DATE(fld_parcel_date) = CURDATE()
+WHERE DATE(fld_parcel_date) = '$today'
 ";
 
 $result = $conn->query($sql);

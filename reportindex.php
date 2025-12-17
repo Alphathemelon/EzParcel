@@ -17,7 +17,7 @@
             <div class="card">
                 <h4>Total Earning Today</h4>
                 <h1 id="displayAmount"></h1>
-                <script src="js/report3.js"></script> 
+                <p class="update-time">Last updated: <span id="lastUpdated"></span></p>
             </div>
         </div>
 
@@ -26,7 +26,6 @@
                 <h4>Total Parcel Today</h4>
                 <h1 id="displayCollected">0</h1>
                 <p class="update-time">Last updated: <span id="lastUpdatedCollected"></span></p>
-                <script src="js/report5.js"></script> 
             </div>
         </div>
 
@@ -53,9 +52,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Custom scripts -->
-    <script src="js/report4.js"></script>
+
     <script src="js/report.js"></script>
     <script src="js/report2.js"></script>
+    <script src="js/report3.js"></script> 
+    <script src="js/report4.js"></script>
+    <script src="js/report5.js"></script> 
+
+
 
 
 </body>
