@@ -132,6 +132,7 @@ if (isset($_POST['signup'])) {
                 <p>Enter your personal details and start journey with us</p>
                 <button class="ghost" id="signUp">Sign Up</button>
             </div>
+        
         </div>
     </div>
 </div>

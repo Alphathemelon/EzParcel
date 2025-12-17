@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 const displayElement = document.getElementById('displayAmount');
-               // const lastUpdated = document.getElementById('lastUpdated');
+                const lastUpdated = document.getElementById('lastUpdated');
 
                 if (displayElement && lastUpdated) {
                     let amount = parseFloat(data.total_today).toFixed(2);
@@ -21,6 +21,12 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
+<<<<<<< HEAD
+    updateDashboard(); // panggil sekali masa load
+    setInterval(updateDashboard, 60000); // auto refresh setiap 60 saat
+});
+=======
     //updateDashboard(); // panggil sekali masa load
     //setInterval(updateDashboard, 60000); // auto refresh setiap 60 saat
 });
+>>>>>>> cd994841fde612a942057d3b690c3aa334ad6cb0
