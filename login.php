@@ -18,10 +18,22 @@ if (isset($_POST['signin'])) {
 
         if ($user && $user['fld_user_password'] === sha1($_POST['password_signin'])) {
             $_SESSION['loggedIn'] = true;
-            $_SESSION['user_id'] = $user['fld_user_email']; // boleh simpan email atau user_id
+            $_SESSION['user_email'] = $user['fld_user_email'];
             $_SESSION['user_name'] = $user['fld_user_name'];
-            header("Location: orderhistory.php");
-            exit;
+            $_SESSION['user_level'] = (int)$user['fld_user_level'];
+
+            // Redirect based on user level
+            if ($_SESSION['user_level'] === 1) {
+                header("Location: orderhistory.php");
+                exit;
+            } elseif ($_SESSION['user_level'] === 2) {
+                header("Location: parcelstatus.php");
+                exit;
+            } else {
+                // Unknown level - fallback
+                header("Location: orderhistory.php");
+                exit;
+            }
         } else {
             $signin_error = "Invalid Email, Phone or Password";
         }

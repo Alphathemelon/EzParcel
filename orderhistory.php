@@ -1,4 +1,6 @@
 <?php
+include_once 'auth.php';
+authorize([1]);
 include_once 'database.php';
 
 try {
@@ -16,7 +18,7 @@ try {
             fld_parcel_amount,
             fld_parcel_weight,
             fld_parcel_location,
-            fld_user_phone
+            fld_user_name
         FROM tbl_parcel_ezparcel
         ORDER BY fld_parcel_date DESC
     ");
@@ -84,7 +86,7 @@ let parcels = <?php
         $clean[] = [
             "code" => $p["fld_parcel_storage"] . $p["fld_parcel_location"],
             "price"   => (float)$p["fld_parcel_amount"],
-            "phone"   => $p["fld_user_phone"],
+            "name"   => $p["fld_user_name"],
             "orderid" => $p["fld_parcel_ID"],
             "weight"  => $p["fld_parcel_weight"],
             "color"   => ($p["fld_parcel_status"] === "Collected" ? "green" : "red"),
@@ -113,7 +115,7 @@ function displayParcels(list) {
                 </div>
 
                 <div class="details">
-                    <b>Phone:</b> ${p.phone}<br>
+                    <b>Name:</b> ${p.name}<br>
                     <b>Order ID:</b> ${p.orderid}<br>
                     <b>Weight:</b> ${p.weight}<br>
                     ${p.color === 'red' ? `
