@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/stylereport.css">
+    <link rel="stylesheet" href="css/stylereport.css?v=1.1">
 
     <title>Report EzParcel</title>
 </head>
@@ -14,7 +14,25 @@ include_once 'auth.php';
 authorize([1]); // Hanya admin (level 1) yang boleh akses halaman ini
 ?>
 
+<?php
+if (isset($_GET['week'])) {
+    $_SESSION['selected_week'] = $_GET['week'];
+}
+$selectedWeek = isset($_SESSION['selected_week']) ? $_SESSION['selected_week'] : '';
+?>
+
 <?php include 'navbar.php'; ?>
+
+    <div class="week-selection-container">
+        <form method="GET" action="" class="week-form">
+            <div class="input-group">
+                <label for="weekPicker">Select Week</label>
+                <input type="week" name="week" id="weekPicker" class="form-control" value="<?php echo htmlspecialchars($selectedWeek); ?>">
+                <button type="submit" class="btn-apply">Apply</button>
+            </div>
+        </form>
+    </div>
+
     <div class="parent">
         <div class="div1">
             <div class="card">
@@ -24,11 +42,27 @@ authorize([1]); // Hanya admin (level 1) yang boleh akses halaman ini
             </div>
         </div>
 
-       <div class="div2">
+        <div class="div2">
             <div class="card">
                 <h4>Total Parcel Today</h4>
                 <h1 id="displayCollected">0</h1>
                 <p class="update-time">Last updated: <span id="lastUpdatedCollected"></span></p>
+            </div>
+        </div>
+
+        <div class="div6">
+            <div class="card">
+                <h4>Collection Comparison</h4>
+                <h3 id="compEarning">Loading...</h3>
+                <p id="compEarningDesc" style="font-size: 14px; margin-top: 5px;">Yesterday: ...</p>
+            </div>
+        </div>
+
+        <div class="div7">
+            <div class="card">
+                <h4>Parcel Comparison</h4>
+                <h3 id="compParcel">Loading...</h3>
+                <p id="compParcelDesc" style="font-size: 14px; margin-top: 5px;">Yesterday: ...</p>
             </div>
         </div>
 
@@ -74,6 +108,7 @@ authorize([1]); // Hanya admin (level 1) yang boleh akses halaman ini
     <script src="js/report3.js"></script> 
     <script src="js/report4.js"></script>
     <script src="js/report5.js"></script> 
+    <script src="js/report_comparison.js"></script>
 
 
 
