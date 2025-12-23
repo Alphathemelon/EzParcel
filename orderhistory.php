@@ -18,7 +18,8 @@ try {
             fld_parcel_amount,
             fld_parcel_weight,
             fld_parcel_location,
-            fld_user_name
+            fld_user_name,
+            fld_parcel_pic
         FROM tbl_parcel_ezparcel
         ORDER BY fld_parcel_date DESC
     ");
@@ -94,7 +95,8 @@ let parcels = <?php
             "orderid" => $p["fld_parcel_ID"],
             "weight"  => $p["fld_parcel_weight"],
             "color"   => ($p["fld_parcel_status"] === "Collected" ? "green" : "red"),
-            "date"    => $p["fld_parcel_date"]
+            "date"    => $p["fld_parcel_date"],
+            "pic"     => $p["fld_parcel_pic"]
         ];
     }
 
@@ -122,6 +124,14 @@ function displayParcels(list) {
                     <b>Name:</b> ${p.name}<br>
                     <b>Order ID:</b> ${p.orderid}<br>
                     <b>Weight:</b> ${p.weight}<br>
+                    <b>Parcel Photo:</b><br>
+                    ${p.pic ? `
+                        <div style="margin:8px 0;">
+                            <img src="${p.pic}" 
+                            alt="Parcel Image"
+                            style="width:100%;max-width:250px;border-radius:8px;">
+                        </div>
+                    ` : `<i>No image uploaded</i><br>`}
                     ${p.color === 'red' ? `
                     <b>Date:</b> ${p.date}
                     <div class="action-buttons" style="margin-top:10px;">
