@@ -39,6 +39,12 @@ authorize([1]);
     <p id="currentDateStorage" style="color:#555; margin-bottom: 15px;"></p>
     <div class="storage-header" id="shelfTitle">Storage Location</div>
     <div id="gridContainer"></div>
+    <label>Parcel Photo</label>
+    <video id="photoCam" autoplay style="width:100%;max-width:280px;border-radius:10px;"></video>
+    <canvas id="photoCanvas" hidden></canvas>
+
+    <button onclick="capturePhoto()">Capture Photo</button>
+    <img id="photoPreview" style="display:none;width:100%;max-width:280px;margin-top:10px;border-radius:10px;">
     <button id="confirmBtn" onclick="confirmLocation()" disabled>Confirm Location</button>
 </div>
 
@@ -126,6 +132,7 @@ function submitParcel() {
     document.getElementById('storagePage').classList.remove("hidden");
 
     generateSlots();
+    startPhotoCam();
 }
 
 /* ===== GENERATE SLOTS ===== */
@@ -176,6 +183,28 @@ async function generateSlots() {
     updateConfirmButton();
 }
 
+/* ===== PHOTO ===== */
+let photoStream, photoBlob = null;
+const photoCam = document.getElementById('photoCam');
+const photoCanvas = document.getElementById('photoCanvas');
+const photoPreview = document.getElementById('photoPreview');
+
+function startPhotoCam(){
+    navigator.mediaDevices.getUserMedia({video:true})
+    .then(s=>{photoStream=s;photoCam.srcObject=s;});
+}
+
+function capturePhoto(){
+    photoCanvas.width=photoCam.videoWidth;
+    photoCanvas.height=photoCam.videoHeight;
+    photoCanvas.getContext('2d').drawImage(photoCam,0,0);
+    photoCanvas.toBlob(b=>{
+        photoBlob=b;
+        photoPreview.src=URL.createObjectURL(b);
+        photoPreview.style.display='block';
+    },'image/jpeg');
+    photoStream.getTracks().forEach(t=>t.stop());
+}
 function updateConfirmButton() {
     const selected = document.querySelector(".slot.selected");
     document.getElementById('confirmBtn').disabled = !selected;
@@ -188,59 +217,42 @@ function confirmLocation() {
         return;
     }
 
-    const selected = selectedEl.textContent;
-    const parcel = document.getElementById('parcelID').value.trim();
-    const name = document.getElementById('userName').value.trim();
-    const weight = document.getElementById('parcelWeight').value;
-    const storage = window.currentShelfCode || document.getElementById('shelfTitle').innerText || '';
-
-    if (!parcel || !name || !weight) {
-        showMessage('error','Missing parcel data. Please scan QR, enter name and weight.');
+    if (!photoBlob) {
+        showMessage('error','Please capture parcel photo first');
         return;
     }
 
-    const btn = document.getElementById('confirmBtn');
-    btn.disabled = true;
-
-    const payload = new URLSearchParams();
-    payload.append('action', 'create');
-    payload.append('parcelID', parcel);
-    payload.append('userName', name);
-    payload.append('parcelWeight', weight);
-    payload.append('storage', storage);
-    payload.append('location', selected);
+    const formData = new FormData();
+    formData.append('action', 'create');
+    formData.append('parcelID', document.getElementById('parcelID').value.trim());
+    formData.append('userName', document.getElementById('userName').value.trim());
+    formData.append('parcelWeight', document.getElementById('parcelWeight').value);
+    formData.append('storage', window.currentShelfCode);
+    formData.append('location', selectedEl.textContent);
+    formData.append('parcel_pic', photoBlob, 'parcel.jpg'); // 📸
 
     fetch('parcel_CRUD.php?action=create', {
         method: 'POST',
-        headers: {'Content-Type':'application/x-www-form-urlencoded'},
-        body: payload.toString()
+        body: formData
     })
     .then(res => res.json())
     .then(json => {
-        if (json && json.success) {
-            const statusText = json.status || 'Uncollected';
-            const fee = (json.amount !== undefined && json.amount !== null) ? parseFloat(json.amount).toFixed(2) : '0.00';
-            showMessage('success', `Parcel saved — Status: ${statusText} • Fee: RM${fee}`);
+        if (json.success) {
+            showMessage('success', 'Parcel saved with photo');
         } else {
-            const msg = json && (json.error || json.message) ? (json.error || json.message) : 'Unknown error';
-            showMessage('error','Save failed: ' + msg);
+            showMessage('error', json.error || 'Save failed');
         }
 
         document.getElementById('storagePage').classList.add('hidden');
         document.getElementById('scannerPage').classList.remove('hidden');
-        document.getElementById('parcelID').value = '';
-        document.getElementById('userName').value = '';
-        document.getElementById('parcelWeight').value = '';
-        document.querySelectorAll('.slot.selected').forEach(el => el.classList.remove('selected'));
-
         startCamera();
     })
     .catch(err => {
-        console.error('Network error:', err);
-        showMessage('error','Network error while saving parcel');
-    })
-    .finally(() => { btn.disabled = false; });
+        console.error(err);
+        showMessage('error','Network error');
+    });
 }
+
 
 function showMessage(type, text, timeout=5000){
     const box = document.getElementById('messageBox');

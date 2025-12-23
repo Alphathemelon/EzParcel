@@ -59,10 +59,35 @@ try {
             echo json_encode(["success" => false, "error" => "Parcel under that code has already been registered."]);
             exit;
         }
+        /* ===== HANDLE IMAGE UPLOAD ===== */
+    $picPath = null;
+
+    if (isset($_FILES['parcel_pic']) && $_FILES['parcel_pic']['error'] === UPLOAD_ERR_OK) {
+
+        $uploadDir = 'uploads/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $ext = strtolower(pathinfo($_FILES['parcel_pic']['name'], PATHINFO_EXTENSION));
+        $allowed = ['jpg','jpeg','png'];
+
+        if (!in_array($ext, $allowed)) {
+            http_response_code(400);
+            echo json_encode(["success" => false, "error" => "Invalid image type"]);
+            exit;
+        }
+
+        $filename = $parcel_id . '_' . time() . '.' . $ext;
+        $target = $uploadDir . $filename;
+
+        move_uploaded_file($_FILES['parcel_pic']['tmp_name'], $target);
+        $picPath = $target;
+    }
 
         $stmt = $conn->prepare("INSERT INTO tbl_parcel_ezparcel
-            (fld_parcel_ID, fld_parcel_status, fld_parcel_storage, fld_parcel_date, fld_parcel_amount, fld_parcel_weight, fld_parcel_location, fld_user_name)
-            VALUES (:id, :status, :storage, :date, :amount, :weight, :location, :userName)");
+            (fld_parcel_ID, fld_parcel_status, fld_parcel_storage, fld_parcel_date, fld_parcel_amount, fld_parcel_weight, fld_parcel_location, fld_user_name,fld_parcel_pic)
+            VALUES (:id, :status, :storage, :date, :amount, :weight, :location, :userName,:pic)");
 
         $now = date('Y-m-d H:i:s');
         $stmt->execute([
@@ -74,6 +99,7 @@ try {
             ':weight' => $weight,
             ':location' => $location,
             ':userName' => $userName, // <-- store name instead of phone
+            ':pic' => $picPath
         ]);
 
         echo json_encode(["success" => true, "message" => "Parcel created", "parcel_id" => $parcel_id, "status" => $status, "amount" => $amount, "storage_code" => $storage_code]);
