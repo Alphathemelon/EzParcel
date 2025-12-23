@@ -42,7 +42,7 @@ function loadDonutChart() {
                     labels: data.map(d => d.fld_parcel_date),
                     datasets: [{
                         label: 'Total Amount',
-                        data: data.map(d => parseFloat(d.total_amount)),
+                        data: data.map(d => `RM${parseFloat(d.total_amount).toFixed(2)}`),
                         backgroundColor: [
                             '#4169E1', '#FF6384', '#36A2EB',
                             '#FFCE56', '#8A2BE2', '#00CED1',
