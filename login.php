@@ -97,8 +97,6 @@ if (isset($_POST['signup'])) {
     <div class="form-container sign-up-container">
         <form method="post" action="">
             <h1>Create Account</h1>
-            <?php if(isset($signup_error)) echo "<div class='alert'>$signup_error</div>"; ?>
-            <?php if(isset($signup_success)) echo "<div class='success'>$signup_success</div>"; ?>
             <input type="text" name="name_signup" placeholder="Name" required />
             <input type="email" name="email_signup" placeholder="Email" required />
             <input type="text" name="phone_signup" placeholder="Phone" required />
@@ -111,7 +109,6 @@ if (isset($_POST['signup'])) {
     <div class="form-container sign-in-container">
         <form method="post" action="">
             <h1>Sign In</h1>
-            <?php if(isset($signin_error)) echo "<div class='alert'>$signin_error</div>"; ?>
             <input type="email" name="email_signin" placeholder="Email" required />
             <input type="password" name="password_signin" placeholder="Password" required />
             <a href="#">Forgot your password?</a>
@@ -136,5 +133,23 @@ if (isset($_POST['signup'])) {
         </div>
     </div>
 </div>
+</div>
+<?php if (isset($signup_error) || isset($signup_success) || isset($signin_error)) { ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var container = document.getElementById('container');
+    <?php if (isset($signup_error)) { ?>
+        if (container) container.classList.add('right-panel-active');
+        if (typeof showPopup === 'function') showPopup(<?php echo json_encode($signup_error); ?>, 'error');
+    <?php } ?>
+    <?php if (isset($signup_success)) { ?>
+        if (typeof showPopup === 'function') showPopup(<?php echo json_encode($signup_success); ?>, 'success');
+    <?php } ?>
+    <?php if (isset($signin_error)) { ?>
+        if (typeof showPopup === 'function') showPopup(<?php echo json_encode($signin_error); ?>, 'error');
+    <?php } ?>
+});
+</script>
+<?php } ?>
 </body>
 </html>
