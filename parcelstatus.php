@@ -158,6 +158,14 @@ th,td {
 </div>
 </div>
 
+<!-- QR Modal -->
+<div id="qrOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); align-items:center; justify-content:center; z-index:10000;">
+    <div style="background:#fff; border-radius:10px; padding:16px; max-width:420px; text-align:center; position:relative;">
+        <button id="qrCloseBtn" style="position:absolute; right:8px; top:8px; border:0; background:none; font-size:18px; cursor:pointer">✕</button>
+        <img id="qrImage" src="uploads/Qr_Payment.jpg" alt="QR Payment" style="max-width:100%; height:auto; border-radius:8px;" />
+        <p style="margin-top:10px; font-size:14px;">Please show proof of payment to nearby staff for parcel recival confirmation</p>
+    </div>
+</div>
 <script>
 let parcels = <?= json_encode($parcels) ?>;
 let collections = <?= json_encode($collections) ?>;
@@ -240,6 +248,26 @@ function searchTracking(){
 }
 
 renderCollections(collections);
+
+// QR modal handlers
+document.addEventListener('click', function(e){
+    if(!e.target) return;
+    if (e.target.id === 'payQrBtn' || e.target.classList && e.target.classList.contains('payQrBtn')) {
+        const qrOverlay = document.getElementById('qrOverlay');
+        if (qrOverlay) qrOverlay.style.display = 'flex';
+    }
+});
+
+const qrCloseBtn = document.getElementById('qrCloseBtn');
+if (qrCloseBtn) qrCloseBtn.addEventListener('click', function(){
+    const qrOverlay = document.getElementById('qrOverlay');
+    if (qrOverlay) qrOverlay.style.display = 'none';
+});
+
+const qrOverlayElem = document.getElementById('qrOverlay');
+if (qrOverlayElem) qrOverlayElem.addEventListener('click', function(e){
+    if (e.target === this) this.style.display = 'none';
+});
 </script>
 
 </body>
