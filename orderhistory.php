@@ -52,10 +52,10 @@ $conn = null;
 </div>
 
 <div class="search-wrapper">
-    <form class="search-form" onsubmit="searchOrder(event);" role="search">
-        <input id="keyword" class="search-input" type="search" placeholder="Search Order ID..." autofocus required />
-        <button type="submit" class="search-btn">Go</button>    
-    </form>
+        <form class="search-form" onsubmit="searchOrder(event);" role="search">
+            <input id="keyword" class="search-input" type="search" placeholder="Search Order ID..." autofocus required />
+            <button type="submit" class="search-btn">Go</button>    
+        </form>
 </div>
 
 <div id="parcelList"></div>

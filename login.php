@@ -119,19 +119,26 @@ if (isset($_POST['signup'])) {
     <!-- OVERLAY -->
     <div class="overlay-container">
         <div class="overlay">
+
             <div class="overlay-panel overlay-left">
-                <h1>Welcome Back!</h1>
+                <h1>
+                    <img src="images/logo.png" alt="EZParcel Logo" class="overlay-logo">
+                </h1>
                 <p>To keep connected with us please login with your personal info</p>
                 <button class="ghost" id="signIn">Sign In</button>
             </div>
+
             <div class="overlay-panel overlay-right">
-                <h1>Hello, Friend!</h1>
+                <h1>
+                    <img src="images/logo.png" alt="EZParcel Logo" class="overlay-logo">
+                </h1>
                 <p>Enter your personal details and start journey with us</p>
                 <button class="ghost" id="signUp">Sign Up</button>
             </div>
-        
+
         </div>
     </div>
+
 </div>
 </div>
 <?php if (isset($signup_error) || isset($signup_success) || isset($signin_error)) { ?>

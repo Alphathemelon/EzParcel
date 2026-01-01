@@ -5,6 +5,11 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 $user_level = isset($_SESSION['user_level']) ? (int)$_SESSION['user_level'] : 0;
 ?>
 <nav>
+    <div class="nav-left">
+        <a href="parcelstatus.php">
+            <img src="images/logo.png" alt="EZParcel Logo" class="nav-logo">
+        </a>
+    </div>
     <div class="nav-center">
         <?php if ($user_level === 1): ?>
             <a href="orderhistory.php" class="<?= ($currentPage == 'orderhistory.php') ? 'active' : '' ?>">Order History</a>
@@ -30,18 +35,18 @@ $user_level = isset($_SESSION['user_level']) ? (int)$_SESSION['user_level'] : 0;
 
 <style>
 nav {
-    width: 100%;
-    background: #3454B4;
-    padding: 12px 20px;
-    display: flex;
-    justify-content: space-between; /* kiri/kanan */
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    box-sizing: border-box;
+    padding: 5px 25px;
+    background-color: #3454B4;
 }
 
 .nav-center {
-    margin: 0 auto; /* center the middle links */
-}
+    grid-column: 2;
+    display: flex;
+    gap: 10px;
+    justify-content: center;}
 
 .nav-center a {
     color: white;
@@ -50,6 +55,14 @@ nav {
     margin: 0 15px;
     font-weight: 500;
     padding-bottom: 3px;
+}
+
+.nav-right {
+    grid-column: 3;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .nav-right a {
@@ -71,4 +84,15 @@ nav {
     border-bottom: 2px solid white;
 }
 
+/* LEFT */
+.nav-left {
+    display: flex;
+    align-items: center;
+}
+
+/* LOGO */
+.nav-logo {
+    height: 40px;
+    width: auto;
+}
 </style>
