@@ -14,23 +14,66 @@ authorize([1]);
 ?>
 
 <?php
-if (isset($_GET['week'])) {
-    $_SESSION['selected_week'] = $_GET['week'];
+
+if (isset($_GET['report_type'])) {
+    $_SESSION['report_type'] = $_GET['report_type'];
+    
+    // Reset specific selections to ensure clean state or update them if provided
+    if (isset($_GET['week'])) $_SESSION['selected_week'] = $_GET['week'];
+    if (isset($_GET['month'])) $_SESSION['selected_month'] = $_GET['month'];
+    if (isset($_GET['year'])) $_SESSION['selected_year'] = $_GET['year'];
 }
-$selectedWeek = isset($_SESSION['selected_week']) ? $_SESSION['selected_week'] : '';
+
+// Set defaults
+$reportType = isset($_SESSION['report_type']) ? $_SESSION['report_type'] : 'weekly';
+$selectedWeek = isset($_SESSION['selected_week']) ? $_SESSION['selected_week'] : date('Y-\WW'); 
+$selectedMonth = isset($_SESSION['selected_month']) ? $_SESSION['selected_month'] : date('Y-m');
+$selectedYear = isset($_SESSION['selected_year']) ? $_SESSION['selected_year'] : date('Y');
+
+// Determine display title
+$chartTitle = "Weekly Amount";
+if ($reportType == 'monthly') $chartTitle = "Monthly Amount";
+if ($reportType == 'yearly') $chartTitle = "Yearly Amount";
 ?>
 
 <?php include 'navbar.php'; ?>
 
     <div class="week-selection-container">
-        <form method="GET" action="" class="week-form">
+        <form method="GET" action="" class="week-form" id="reportForm">
             <div class="input-group">
-                <label for="weekPicker">Select Week</label>
-                <input type="week" name="week" id="weekPicker" value="<?php echo htmlspecialchars($selectedWeek); ?>" style="border:none; outline:none; background:transparent;">
+                <label for="reportType">Report Type</label>
+                <select name="report_type" id="reportType" onchange="toggleInputs()" style="padding: 5px; border-radius: 5px; border: 1px solid #ccc; margin-right: 10px;">
+                    <option value="weekly" <?php echo $reportType == 'weekly' ? 'selected' : ''; ?>>Weekly</option>
+                    <option value="monthly" <?php echo $reportType == 'monthly' ? 'selected' : ''; ?>>Monthly</option>
+                    <option value="yearly" <?php echo $reportType == 'yearly' ? 'selected' : ''; ?>>Yearly</option>
+                </select>
+
+                <span id="weekInput" style="display:none;">
+                    <input type="week" name="week" value="<?php echo htmlspecialchars($selectedWeek); ?>" style="border:none; outline:none; background:transparent;">
+                </span>
+
+                <span id="yearInput" style="display:none;">
+                    <input type="number" name="year" value="<?php echo htmlspecialchars($selectedYear); ?>" min="2020" max="2099" style="width: 80px; padding: 5px; border:none; outline:none; background:transparent;">
+                </span>
+
                 <button type="submit" class="btn-apply">Apply</button>
             </div>
         </form>
     </div>
+
+    <script>
+        function toggleInputs() {
+            var type = document.getElementById('reportType').value;
+            // Weekly: Show Week
+            document.getElementById('weekInput').style.display = (type == 'weekly') ? 'inline-block' : 'none';
+            // Monthly: Show Year (to pick which year's months to see)
+            document.getElementById('yearInput').style.display = (type == 'monthly') ? 'inline-block' : 'none';
+            // Yearly: Show Nothing (shows all years)
+            // Note: If type is yearly, both inputs are hidden
+        }
+        // Run on load
+        toggleInputs();
+    </script>
 
     <div class="parent">
         
@@ -69,7 +112,7 @@ $selectedWeek = isset($_SESSION['selected_week']) ? $_SESSION['selected_week'] :
 
         <div class="div3">
             <div class="card">
-                <h4>Weekly Amount</h4>
+                <h4><?php echo $chartTitle; ?></h4>
                 <div class="chart-container">
                     <canvas id="amountChart"></canvas>
                 </div>
