@@ -78,7 +78,7 @@ $conn = null;
         </select>
 
         <div style="margin-top:15px;text-align:right;">
-            <button onclick="closestaffModal()">Cancel</button>
+            <button onclick="closeStaffModal()">Cancel</button>
             <button onclick="confirmPaid()">Confirm</button>
         </div>
     </div>
@@ -120,6 +120,7 @@ let parcels = <?php
             "orderid" => $p["fld_parcel_ID"],
             "weight"  => $p["fld_parcel_weight"],
             "color"   => ($p["fld_parcel_status"] === "Collected" ? "green" : "red"),
+            "completedBy" => $p["fld_completed_by"] ?? "",
             "date"    => $p["fld_parcel_date"],
             "pic"     => $p["fld_parcel_pic"]
         ];
@@ -161,17 +162,14 @@ function displayParcels(list) {
                             style="width:100%;max-width:250px;border-radius:8px;">
                         </div>
                     ` : `<i>No image uploaded</i><br>`}
-<<<<<<< HEAD
-        
-=======
-                    ${p.color === 'red' ? `
-                    <b>Date:</b> ${p.date}
-                    <div class="action-buttons" style="margin-top:10px;">
-                        <button class="btn btn-paid" onclick="openStaffModal('${p.orderid}')">Paid</button>
-                    </div>
-                    ` : ''}
->>>>>>> 2aadcb6e068f326065aad54e359c2254ecb381e8
+                
                     
+                    ${p.color === "red" ? `
+                        <button onclick="openStaffModal('${p.orderid}')" style="margin-top:10px;padding:8px 12px;background:green;color:#fff;border:none;border-radius:5px;cursor:pointer;">
+                            Mark as Paid & Collected
+                        </button>
+                    ` : 
+                    `<span style="color:green;font-weight:bold;">This parcel has been Collected.</span>`}
                 </div>
             </div>
         `;
