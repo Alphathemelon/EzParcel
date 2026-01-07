@@ -19,7 +19,8 @@ try {
             fld_parcel_weight,
             fld_parcel_location,
             fld_user_name,
-            fld_parcel_pic
+            fld_parcel_pic,
+            fld_completed_by
         FROM tbl_parcel_ezparcel
         ORDER BY fld_parcel_date DESC
     ");
@@ -69,20 +70,7 @@ $conn = null;
 
 <div id="parcelList"></div>
 
-<div id="staffModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);">
-    <div style="background:#fff;width:300px;margin:15% auto;padding:20px;border-radius:10px;">
-        <h3>Select Staff</h3>
 
-        <select id="staffSelect" style="width:100%;padding:8px;">
-            <option value="">-- Select Staff --</option>
-        </select>
-
-        <div style="margin-top:15px;text-align:right;">
-            <button onclick="closeStaffModal()">Cancel</button>
-            <button onclick="confirmPaid()">Confirm</button>
-        </div>
-    </div>
-</div>
 
 
 <script>
@@ -162,14 +150,12 @@ function displayParcels(list) {
                             style="width:100%;max-width:250px;border-radius:8px;">
                         </div>
                     ` : `<i>No image uploaded</i><br>`}
-                
-                    
-                    ${p.color === "red" ? `
-                        <button onclick="openStaffModal('${p.orderid}')" style="margin-top:10px;padding:8px 12px;background:green;color:#fff;border:none;border-radius:5px;cursor:pointer;">
-                            Mark as Paid & Collected
-                        </button>
-                    ` : 
-                    `<span style="color:green;font-weight:bold;">This parcel has been Collected.</span>`}
+                    <b>Completed by:</b> ${p.completedBy ? p.completedBy : "<i>Not yet collected</i>"}<br>
+                     
+                   <span style="font-weight:bold;color:${p.color === "green" ? "green" : "red"};">
+                        Status: ${p.color === "green" ? "Collected" : "Not Collected"}
+                   </span>
+
                 </div>
             </div>
         `;
@@ -218,111 +204,6 @@ function toggleDetails(el) {
 }
 
 
-// Mark parcel as Paid (Collected)
-async function markPaid(btn, parcelID) {
-    // Ask for confirmation before proceeding
-    const ok = confirm(`Mark parcel ${parcelID} as Paid/Collected?`);
-    if (!ok) return;
-
-    try {
-        btn.disabled = true;
-        btn.textContent = 'Saving...';
-
-        const form = new URLSearchParams();
-        form.append('action', 'update');
-        form.append('parcelID', parcelID);
-        form.append('status', 'Collected');
-
-        const res = await fetch('parcel_CRUD.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: form.toString()
-        });
-
-        const data = await res.json();
-        if (res.ok && data.success) {
-            // Update UI: change card color to green and close details
-            const card = btn.closest('.order-card');
-            if (card) {
-                card.classList.remove('red');
-                card.classList.add('green');
-                card.classList.remove('open');
-                const toggle = card.querySelector('.toggle-btn');
-                if (toggle) toggle.classList.remove('open');
-            }
-
-            // Update in-memory parcels array so filters remain consistent
-            const idx = parcels.findIndex(p => p.orderid === parcelID);
-            if (idx !== -1) parcels[idx].color = 'green';
-
-            alert('Parcel marked as Paid/Collected');
-        } else {
-            alert('Failed to mark parcel: ' + (data.error || data.message || 'Unknown error'));
-            btn.disabled = false;
-            btn.textContent = 'Paid';
-        }
-    } catch (err) {
-        console.error(err);
-        alert('Network error while updating parcel');
-        btn.disabled = false;
-        btn.textContent = 'Paid';
-    }
-}
-
-// ⭐ REQUIRED GLOBALS
-const staffList = <?php echo json_encode($staffList); ?>;
-let selectedParcelID = null;
-
-// Open modal
-function openStaffModal(parcelID) {
-    selectedParcelID = parcelID;
-
-    const select = document.getElementById("staffSelect");
-    select.innerHTML = `<option value="">-- Select Staff --</option>`;
-
-    staffList.forEach(name => {
-        select.innerHTML += `<option value="${name}">${name}</option>`;
-    });
-
-    document.getElementById("staffModal").style.display = "block";
-}
-
-// Close modal
-function closeStaffModal() {
-    document.getElementById("staffModal").style.display = "none";
-}
-
-// Confirm paid with selected staff
-async function confirmPaid() {
-    const staff = document.getElementById("staffSelect").value;
-    if (!staff) {
-        alert("Please select staff");
-        return;
-    }
-
-    const form = new URLSearchParams();
-    form.append("action", "update");
-    form.append("parcelID", selectedParcelID);
-    form.append("status", "Collected");
-    form.append("completedBy", staff);
-
-    const res = await fetch("parcel_CRUD.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: form.toString()
-    });
-
-    const data = await res.json();
-    if (data.success) {
-        const p = parcels.find(x => x.orderid === selectedParcelID);
-        if (p) p.color = "green";
-        displayParcels(parcels);
-        closeStaffModal();
-        alert("Parcel marked as Collected");
-    } else {
-        alert("Update failed");
-    }
-}
 
 
 // First load

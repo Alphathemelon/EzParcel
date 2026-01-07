@@ -1,4 +1,5 @@
 <?php
+session_start();
 header('Content-Type: application/json; charset=utf-8');
 include_once 'database.php';
 
@@ -114,48 +115,62 @@ try {
         exit;
     }
     // UPDATE — update fields by parcel ID
-    if (($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) || $action === 'update') {
-        $parcel_id = trim($_POST['parcelID'] ?? $_POST['parcel_id'] ?? '');
-        if ($parcel_id === '') {
-            http_response_code(400);
-            echo json_encode(["success" => false, "error" => "parcelID is required"]);
-            exit;
-        }
+if (($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) || $action === 'update') {
 
-        $allowed = ['status' => 'fld_parcel_status', 'storage' => 'fld_parcel_storage', 'amount' => 'fld_parcel_amount', 'weight' => 'fld_parcel_weight', 'location' => 'fld_parcel_location', 'userName' => 'fld_user_name'];
-        $sets = [];
-        $params = [':id' => $parcel_id];
-
-        foreach ($allowed as $k => $col) {
-            if (isset($_POST[$k])) {
-                $param = ':' . $k;
-                $sets[] = "$col = $param";
-                $params[$param] = $_POST[$k];
-            }
-        }
-        
-        #if parcel is Collected
-        if (
-        isset($_POST['status']) &&
-        $_POST['status'] === 'Collected' &&
-        isset($_SESSION['fld_user_name'])
-    ) {
-        $sets[] = "fld_completed_by = :completed_by";
-        $params[':completed_by'] = $_SESSION['fld_user_name'];
-    }
-
-        if (empty($sets)) {
-            echo json_encode(["success" => false, "message" => "No fields to update"]);
-            exit;
-        }
-
-        $sql = "UPDATE tbl_parcel_ezparcel SET " . implode(', ', $sets) . " WHERE fld_parcel_ID = :id";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute($params);
-
-        echo json_encode(["success" => true, "message" => "Parcel updated", "parcel_id" => $parcel_id, "completed by" => $params[':completed_by'] ?? null]);
+    $parcel_id = trim($_POST['parcelID'] ?? $_POST['parcel_id'] ?? '');
+    if ($parcel_id === '') {
+        http_response_code(400);
+        echo json_encode(["success" => false, "error" => "parcelID is required"]);
         exit;
     }
+
+    $allowed = [
+        'status'   => 'fld_parcel_status',
+        'storage'  => 'fld_parcel_storage',
+        'amount'   => 'fld_parcel_amount',
+        'weight'   => 'fld_parcel_weight',
+        'location' => 'fld_parcel_location',
+        'userName' => 'fld_user_name'
+    ];
+
+    $sets = [];
+    $params = [':id' => $parcel_id];
+
+    foreach ($allowed as $k => $col) {
+        if (isset($_POST[$k])) {
+            $sets[] = "$col = :$k";
+            $params[":$k"] = $_POST[$k];
+        }
+    }
+
+    // ✅ Auto-fill completed_by when collected
+    if (
+        isset($_POST['status']) &&
+        $_POST['status'] === 'Collected' &&
+        isset($_SESSION['user_name'])
+    ) {
+        $sets[] = "fld_completed_by = :completed_by";
+        $params[':completed_by'] = $_SESSION['user_name'];
+    }
+
+    if (empty($sets)) {
+        echo json_encode(["success" => false, "message" => "No fields to update"]);
+        exit;
+    }
+
+    $sql = "UPDATE tbl_parcel_ezparcel SET " . implode(', ', $sets) . " WHERE fld_parcel_ID = :id";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute($params);
+
+    echo json_encode([
+        "success" => true,
+        "message" => "Parcel updated",
+        "parcel_id" => $parcel_id,
+        "completed_by" => $params[':completed_by'] ?? null
+    ]);
+    exit;
+}
+
 
     // DELETE
     if (($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'])) || $action === 'delete') {
