@@ -125,7 +125,7 @@ h2 { margin-top:0; }
         <p style="margin-top:10px; font-size:14px;">Please show proof of payment to nearby staff for parcel recival confirmation</p>
     </div>
 </div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 // PHP → JS
 let parcels = <?php echo json_encode($parcels, JSON_UNESCAPED_SLASHES); ?>;
@@ -194,6 +194,7 @@ function showParcelDetailFromEl(el){
 }
 
 function showParcelDetail(id, amount, status, date){
+    injectParcelQR(id);
     const overlay = document.getElementById('detailOverlay');
     document.getElementById('detailParcelID').textContent = id;
     document.getElementById('detailParcelPrice').textContent = (amount !== '') ? amount : '0.00';
@@ -212,13 +213,50 @@ function showParcelDetail(id, amount, status, date){
     overlay.classList.add('open');
 }
 
+
+function injectParcelQR(parcelID){
+    // Remove old QR if exists
+    const old = document.getElementById('inlineParcelQR');
+    if (old) old.remove();
+
+    const idEl = document.getElementById('detailParcelID');
+    if (!idEl) return;
+
+    // The flex header row
+    const headerRow = idEl.closest('div');
+    if (!headerRow) return;
+
+    // Create QR wrapper
+    const qrWrap = document.createElement('div');
+    qrWrap.id = 'inlineParcelQR';
+    qrWrap.style.margin = '12px 0';
+    qrWrap.style.textAlign = 'center';
+
+    // Insert QR AFTER the header row (not inside it)
+    headerRow.parentNode.insertBefore(qrWrap, headerRow.nextSibling);
+
+    new QRCode(qrWrap, {
+        text: parcelID,
+        width: 120,
+        height: 120,
+        correctLevel: QRCode.CorrectLevel.H
+    });
+}
+
+
 document.getElementById('closeDetailBtn').addEventListener('click', function(){
     document.getElementById('detailOverlay').classList.remove('open');
+     const qr = document.getElementById('inlineParcelQR');
+    if (qr) qr.remove();
 });
 
 // Close when clicking on overlay background (outside the box)
 document.getElementById('detailOverlay').addEventListener('click', function(e){
-    if (e.target === this) this.classList.remove('open');
+    if (e.target === this) {
+        this.classList.remove('open');
+       const qr = document.getElementById('inlineParcelQR');
+        if (qr) qr.remove();
+    }
 });
 
 // Event delegation: handle clicks on parcel links inside the collection table
@@ -356,6 +394,7 @@ if (qrOverlayElem) qrOverlayElem.addEventListener('click', function(e){
     if (e.target === this) this.style.display = 'none';
 });
 </script>
+
 
 </body>
 </html>
