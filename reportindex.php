@@ -95,7 +95,7 @@ if ($reportType == 'yearly') $chartTitle = "Yearly Amount";
 
         <div class="div6">
             <div class="card">
-                <h4>vs Yesterday ($)</h4>
+                <h4>Income Comparison</h4>
                 <h1 id="compEarning">...</h1>
                 <p id="compEarningDesc">Waiting data...</p>
             </div>
@@ -103,7 +103,7 @@ if ($reportType == 'yearly') $chartTitle = "Yearly Amount";
 
         <div class="div7">
             <div class="card">
-                <h4>vs Yesterday (Qty)</h4>
+                <h4>Parcel Quantity Comparison</h4>
                 <h1 id="compParcel">...</h1>
                 <p id="compParcelDesc">Waiting data...</p>
             </div>
