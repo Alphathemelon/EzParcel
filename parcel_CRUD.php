@@ -1,9 +1,6 @@
 <?php
-<<<<<<< HEAD
 date_default_timezone_set('Asia/Kuala_Lumpur');
-=======
 session_start();
->>>>>>> ace36c7ce4f64d11b5b85d8374b4b46ab2b763f6
 header('Content-Type: application/json; charset=utf-8');
 include_once 'database.php';
 
