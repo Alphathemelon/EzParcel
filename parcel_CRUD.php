@@ -133,6 +133,16 @@ try {
                 $params[$param] = $_POST[$k];
             }
         }
+        
+        #if parcel is Collected
+        if (
+        isset($_POST['status']) &&
+        $_POST['status'] === 'Collected' &&
+        isset($_SESSION['fld_user_name'])
+    ) {
+        $sets[] = "fld_completed_by = :completed_by";
+        $params[':completed_by'] = $_SESSION['fld_user_name'];
+    }
 
         if (empty($sets)) {
             echo json_encode(["success" => false, "message" => "No fields to update"]);
@@ -143,7 +153,7 @@ try {
         $stmt = $conn->prepare($sql);
         $stmt->execute($params);
 
-        echo json_encode(["success" => true, "message" => "Parcel updated", "parcel_id" => $parcel_id]);
+        echo json_encode(["success" => true, "message" => "Parcel updated", "parcel_id" => $parcel_id, "completed by" => $params[':completed_by'] ?? null]);
         exit;
     }
 
