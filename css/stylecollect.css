@@ -1,0 +1,227 @@
+/* =========================================
+   GLOBAL VARIABLES & RESET
+   ========================================= */
+:root {
+    /* Search Animation Variables */
+    --rad: .7rem;
+    --dur: .3s;
+    --bez: cubic-bezier(0, 0, 0.43, 1.49);
+    --height: 4rem;
+    --btn-width: 6rem;
+    
+    /* Colors */
+    --color-brand: #3454B4; 
+    --bg-color: #f5f6fa;
+    --color-dark: #2f2f2f;
+    --color-light: #fff;
+    --success-green: #28a745;
+}
+
+body {
+    margin: 0;
+    font-family: "Poppins", sans-serif;
+    background: var(--bg-color);
+    min-height: 100vh;
+}
+
+/* =========================================
+   HEADER
+   ========================================= */
+.header-title {
+    text-align: center;
+    padding: 30px 0 10px 0;
+    color: var(--color-brand);
+    font-weight: 700;
+}
+
+/* =========================================
+   ANIMATED SEARCH BAR
+   ========================================= */
+.search-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 35px;
+    padding: 0 15px;
+}
+
+form.search-form {
+    position: relative;
+    width: 30rem;
+    max-width: 100%;
+    background: var(--color-brand);
+    border-radius: var(--rad);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.search-input, .search-btn {
+    height: var(--height);
+    border: 0;
+    font-size: 1.2rem;
+}
+
+.search-input[type="search"] {
+    outline: 0; 
+    width: 100%;
+    background: var(--color-light);
+    padding: 0 1.6rem;
+    border-radius: var(--rad);
+    appearance: none; 
+    transition: all var(--dur) var(--bez);
+    transition-property: width, border-radius;
+    z-index: 1;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.search-btn {
+    display: block; /* Pastikan dia sentiasa block/nampak */
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: var(--btn-width);
+    font-weight: bold;
+    background: var(--color-brand);
+    color: white;
+    border-radius: 0 var(--rad) var(--rad) 0;
+    cursor: pointer;
+}
+
+/* Munculkan butang 'Go' bila mula menaip */
+.search-input:not(:placeholder-shown) {
+    border-radius: var(--rad) 0 0 var(--rad);
+    width: calc(100% - var(--btn-width));
+}
+
+.search-input:not(:placeholder-shown) + .search-btn {
+    display: block;
+}
+
+/* =========================================
+   MODERN RESULT CARD
+   ========================================= */
+#result {
+    display: flex;
+    justify-content: center;
+    padding: 20px 15px;
+    animation: fadeIn 0.5s ease;
+}
+
+.modern-card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 450px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    overflow: hidden;
+    border: 1px solid #eee;
+}
+
+.card-header {
+    background: var(--color-brand);
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+}
+
+.slot-code {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.price-tag {
+    background: rgba(255,255,255,0.25);
+    padding: 5px 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.card-content {
+    padding: 25px;
+}
+
+.parcel-img-preview, .no-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+    border: 1px solid #eee;
+}
+
+.info-group {
+    margin-bottom: 15px;
+}
+
+.info-group label {
+    display: block;
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.info-group p {
+    margin: 2px 0 0 0;
+    font-weight: 600;
+    color: #333;
+    font-size: 1rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed #ddd;
+}
+
+.confirm-btn {
+    width: 100%;
+    background: var(--success-green);
+    color: white;
+    border: none;
+    padding: 18px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+    border-radius: 0 0 15px 15px;
+}
+
+.confirm-btn:hover {
+    background: #218838;
+}
+
+.qr-btn {
+    position: absolute;
+    right: 7rem; /* Letakkan di sebelah butang 'Go' */
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 2;
+    padding: 5px;
+}
+
+/* Adjust input padding supaya teks tak kena butang kamera */
+.search-input[type="search"] {
+    padding-right: 4rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

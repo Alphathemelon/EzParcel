@@ -142,7 +142,8 @@ function displayParcels(list) {
             <div class="order-card ${p.color}">
                 <div class="order-header">
                     <div>${p.code}<br>
-                        <span style="font-size:15px;font-weight:500;">RM${p.price.toFixed(2)}</span>
+                        <span style="font-size:15px;font-weight:500;">RM${p.price.toFixed(2)}</span><br>
+                        <span style="font-size:15px;font-weight:500;">${new Date(p.date).toLocaleDateString('en-GB', {day: '2-digit',month: 'short',year: 'numeric'})}</span>
                     </div>
                     <div class="toggle-btn" onclick="toggleDetails(this)">⌄</div>
                 </div>
@@ -151,6 +152,7 @@ function displayParcels(list) {
                     <b>Name:</b> ${p.name}<br>
                     <b>Order ID:</b> ${p.orderid}<br>
                     <b>Weight:</b> ${p.weight}<br>
+                    <b>Location:</b> ${p.code}<br>
                     <b>Parcel Photo:</b><br>
                     ${p.pic ? `
                         <div style="margin:8px 0;">
@@ -159,12 +161,16 @@ function displayParcels(list) {
                             style="width:100%;max-width:250px;border-radius:8px;">
                         </div>
                     ` : `<i>No image uploaded</i><br>`}
+<<<<<<< HEAD
+        
+=======
                     ${p.color === 'red' ? `
                     <b>Date:</b> ${p.date}
                     <div class="action-buttons" style="margin-top:10px;">
                         <button class="btn btn-paid" onclick="openStaffModal('${p.orderid}')">Paid</button>
                     </div>
                     ` : ''}
+>>>>>>> 2aadcb6e068f326065aad54e359c2254ecb381e8
                     
                 </div>
             </div>

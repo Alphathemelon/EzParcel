@@ -13,6 +13,7 @@ $user_level = isset($_SESSION['user_level']) ? (int)$_SESSION['user_level'] : 0;
     <div class="nav-center">
         <?php if ($user_level === 1): ?>
             <a href="orderhistory.php" class="<?= ($currentPage == 'orderhistory.php') ? 'active' : '' ?>">Order History</a>
+            <a href="parcelcollect.php" class="<?= ($currentPage == 'parcelcollect.php') ? 'active' : '' ?>">Parcel Collect</a>
             <a href="parcelrecord.php" class="<?= ($currentPage == 'parcelrecord.php') ? 'active' : '' ?>">Parcel Record</a>
             <a href="reportindex.php" class="<?= ($currentPage == 'reportindex.php') ? 'active' : '' ?>">Report</a>
         <?php elseif ($user_level === 2): ?>
