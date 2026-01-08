@@ -38,6 +38,7 @@ try {
     <title>Parcel Collection</title>
     <link rel="stylesheet" href="css/stylecollect.css">
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <link rel="icon" href="images/logo.png" type="image/png">
 </head>
 <body>
 

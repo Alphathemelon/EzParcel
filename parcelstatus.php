@@ -43,31 +43,32 @@ $conn = null;
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Parcel Status</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<style>
-body { font-family: Arial, sans-serif; background:#f4f6fb; margin:0; }
-.container { max-width:600px; margin:30px auto; background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); }
-h2 { margin-top:0; }
-.search-bar { display:flex; gap:10px; margin-bottom:20px; flex-wrap: wrap; }
-.search-bar input { flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; }
-.search-bar button { padding:10px 14px; border:none; border-radius:8px; background:#1f6fff; color:#fff; cursor:pointer; }
-#backBtn { background:#ccc; color:#000; }
-#parcelList { list-style:none; padding:0; margin:0; }
-#parcelList li { display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee; font-weight:500; }
-.badge { padding:4px 12px; border-radius:20px; font-size:13px; font-weight:bold; }
-.badge.complete { background:#d4edda; color:#155724; }
-.badge.incomplete { background:#f8d7da; color:#721c24; }
-/* Detail pop-out overlay (centered modal-style) */
-#detailOverlay { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); z-index:9999; }
-#detailOverlay.open { display:flex; }
-#parcelDetailBox { width:340px; background:#fff; border-radius:10px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,0.2); transform:translateY(8px) scale(.98); opacity:0; transition: transform 200ms ease, opacity 200ms ease; }
-#detailOverlay.open #parcelDetailBox { transform:translateY(0) scale(1); opacity:1; }
-#parcelDetailBox .pay-btn { padding:8px 12px;border-radius:8px;border:0;background:#1f6fff;color:#fff;cursor:pointer }
-#parcelDetailBox .pay-btn.hidden { display:none }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parcel Status</title>
+    <link rel="icon" href="images/logo.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+        <style>
+        body { font-family: Arial, sans-serif; background:#f4f6fb; margin:0; }
+        .container { max-width:600px; margin:30px auto; background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); }
+        h2 { margin-top:0; }
+        .search-bar { display:flex; gap:10px; margin-bottom:20px; flex-wrap: wrap; }
+        .search-bar input { flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; }
+        .search-bar button { padding:10px 14px; border:none; border-radius:8px; background:#1f6fff; color:#fff; cursor:pointer; }
+        #backBtn { background:#ccc; color:#000; }
+        #parcelList { list-style:none; padding:0; margin:0; }
+        #parcelList li { display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee; font-weight:500; }
+        .badge { padding:4px 12px; border-radius:20px; font-size:13px; font-weight:bold; }
+        .badge.complete { background:#d4edda; color:#155724; }
+        .badge.incomplete { background:#f8d7da; color:#721c24; }
+        /* Detail pop-out overlay (centered modal-style) */
+        #detailOverlay { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); z-index:9999; }
+        #detailOverlay.open { display:flex; }
+        #parcelDetailBox { width:340px; background:#fff; border-radius:10px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,0.2); transform:translateY(8px) scale(.98); opacity:0; transition: transform 200ms ease, opacity 200ms ease; }
+        #detailOverlay.open #parcelDetailBox { transform:translateY(0) scale(1); opacity:1; }
+        #parcelDetailBox .pay-btn { padding:8px 12px;border-radius:8px;border:0;background:#1f6fff;color:#fff;cursor:pointer }
+        #parcelDetailBox .pay-btn.hidden { display:none }
+    </style>
 </head>
 <body>
 

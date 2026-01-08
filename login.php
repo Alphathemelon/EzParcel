@@ -83,11 +83,12 @@ if (isset($_POST['signup'])) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EZPARCEL - Login/SignUp</title>
-<link rel="stylesheet" href="css/style.css">
-<script src="js/script.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EZPARCEL - Login/SignUp</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/script.js" defer></script>
+    <link rel="icon" href="images/logo.png" type="image/png">
 </head>
 <body>
      <h2>Welcome To EZPARCEL</h2>
