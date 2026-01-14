@@ -91,6 +91,9 @@ function searchParcel(e) {
     }
 
     // 4. If status is 'Uncollected', display the details card
+    const fee = computeLateFee(p.fld_parcel_date);
+    const displayTotal = (parseFloat(p.fld_parcel_amount) || 0) + fee;
+
     box.innerHTML = `
     <div class="modern-card">
         <div class="card-header">
@@ -98,7 +101,7 @@ function searchParcel(e) {
                 <span class="slot-code">${p.fld_parcel_storage}${p.fld_parcel_location}</span>
                 <small>Storage Slot</small>
             </div>
-            <div class="price-tag">RM${parseFloat(p.fld_parcel_amount).toFixed(2)}</div>
+            <div class="price-tag">RM${displayTotal.toFixed(2)}</div>
         </div>
 
         <div class="card-content">
