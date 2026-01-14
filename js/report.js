@@ -18,17 +18,17 @@ fetch("script.php")
           {
             label: 'Size S',
             data: sizeS,
-            backgroundColor: '#3498db'
+            backgroundColor: '#003f5c'
           },
           {
             label: 'Size M',
             data: sizeM,
-            backgroundColor: '#34495e'
+            backgroundColor: '#bc5090'
           },
           {
             label: 'Size L',
             data: sizeL,
-            backgroundColor: '#154360'
+            backgroundColor: '#ffa600'
           }
         ]
       },
