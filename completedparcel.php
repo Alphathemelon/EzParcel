@@ -1,0 +1,193 @@
+<?php
+include_once 'auth.php';
+authorize([2]);
+include_once 'database.php';
+
+try {
+    // Connect
+    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // Read all parcels
+    $parcels = [];
+    if (!empty($_SESSION['user_email'])) {
+        $stmt = $conn->prepare("
+            SELECT 
+                p.fld_parcel_ID,
+                p.fld_parcel_status,
+                p.fld_parcel_storage,
+                p.fld_parcel_date,
+                p.fld_parcel_amount,
+                p.fld_parcel_weight,
+                p.fld_parcel_location,
+                p.fld_user_name,
+                p.fld_parcel_pic,
+                p.fld_completed_by
+            FROM tbl_parcelcollection_ezparcel c
+            LEFT JOIN tbl_parcel_ezparcel p ON p.fld_parcel_ID = c.fld_parcel_ID
+            WHERE c.fld_user_email = :email
+            AND LOWER(p.fld_parcel_status) = 'collected'
+            ORDER BY p.fld_parcel_date DESC
+        ");
+        $stmt->execute([':email' => $_SESSION['user_email']]);
+        $parcels = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+ 
+} catch (PDOException $e) {
+    die("DB Error: " . $e->getMessage());
+}
+
+$conn = null;
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/stylesearch.css"> 
+    <title>Order History</title>
+    <link rel="icon" href="images/logo.png" type="image/png">
+</head>
+<body>
+
+<?php include 'navbar.php'; ?>
+
+<div class="tabs" style="margin-bottom:20px;">
+    <div class="tab green active">COMPLETED PARCELS ORDER</div>
+</div>
+
+<div class="search-wrapper">
+        <form class="search-form" onsubmit="searchOrder(event);" role="search">
+            <input id="keyword" class="search-input" type="search" placeholder="Search Order ID..." autofocus required />
+            <button type="submit" class="search-btn">Go</button>    
+        </form>
+</div>
+
+<div id="parcelList"></div>
+<script>
+    // SEARCH FUNCTION
+function searchOrder(event) {
+    event.preventDefault();
+
+    const keyword = document.getElementById("keyword").value.trim().toLowerCase();
+
+    if (keyword === "") {
+        displayParcels(parcels); // show all if empty
+        return;
+    }
+
+    const filtered = parcels.filter(p =>
+        p.orderid.toLowerCase().includes(keyword) ||
+        p.code.toLowerCase().includes(keyword)
+    );
+
+    displayParcels(filtered);
+}
+
+
+// ===================================
+// CLEAN PHP → JS data conversion
+// =================================== 
+let parcels = <?php
+    $clean = [];
+
+    foreach ($parcels as $p) {
+        $clean[] = [
+            "code" => $p["fld_parcel_storage"] . $p["fld_parcel_location"],
+            "price"   => (float)$p["fld_parcel_amount"],
+            "name"   => $p["fld_user_name"],
+            "orderid" => $p["fld_parcel_ID"],
+            "weight"  => $p["fld_parcel_weight"],
+            "color"   => "green",
+            "completedBy" => $p["fld_completed_by"] ?? "",
+            "date"    => $p["fld_parcel_date"],
+            "pic"     => $p["fld_parcel_pic"]
+        ];
+    }
+
+    echo json_encode($clean, JSON_UNESCAPED_SLASHES);
+?>;
+
+
+
+
+// ===================================
+// DISPLAY LIST
+// ===================================
+function displayParcels(list) {
+    const parcelList = document.getElementById("parcelList");
+    parcelList.innerHTML = "";
+    
+    if (!list || list.length === 0) {
+        parcelList.innerHTML =
+            "<p style='text-align:center;color:#777;'>No completed parcels found.</p>";
+        return;
+    }
+
+    list.forEach(p => {
+        parcelList.innerHTML += `
+            <div class="order-card green">
+                <div class="order-header">
+                    <div>
+                        ${p.code}<br>
+                        <span style="font-size:15px;font-weight:500;">RM${p.price.toFixed(2)}</span><br>
+                        <span style="font-size:15px;font-weight:500;">
+                            ${new Date(p.date).toLocaleDateString('en-GB', {
+                                day: '2-digit', month: 'short', year: 'numeric'
+                            })}
+                        </span>
+                    </div>
+                    <div class="toggle-btn" onclick="toggleDetails(this)">⌄</div>
+                </div>
+
+                <div class="details">
+                    <b>Name:</b> ${p.name}<br>
+                    <b>Order ID:</b> ${p.orderid}<br>
+                    <b>Weight:</b> ${p.weight}<br>
+                    <b>Location:</b> ${p.code}<br>
+
+                    <b>Parcel Photo:</b><br>
+                    ${p.pic ? `
+                        <div style="margin:8px 0;">
+                            <img src="${p.pic}" style="width:100%;max-width:250px;border-radius:8px;">
+                        </div>
+                    ` : `<i>No image uploaded</i><br>`}
+
+                    <b>Completed by:</b> ${p.completedBy || "<i>Unknown</i>"}<br>
+
+                    <!-- ✅ CHANGE 3: ALWAYS COLLECTED -->
+                    <span style="font-weight:bold;color:green;">
+                        Status: Collected
+                    </span>
+                </div>
+            </div>
+        `;
+    });
+}
+// TOGGLE
+function toggleDetails(el) {
+    const card = el.closest('.order-card');
+    if (!card) return;
+    // Close other open cards so only one is open at a time
+    document.querySelectorAll('.order-card.open').forEach(c => {
+        if (c === card) return;
+        c.classList.remove('open');
+        const btn = c.querySelector('.toggle-btn');
+        if (btn) btn.classList.remove('open');
+    });
+
+    // Toggle the clicked card
+    card.classList.toggle('open');
+    el.classList.toggle('open');
+}
+
+
+
+
+// First load
+displayParcels(parcels);
+</script>
+
+</body>
+</html>

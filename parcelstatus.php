@@ -28,7 +28,9 @@ try {
     $collections = [];
     if (!empty($_SESSION['user_email'])) {
         // Join collection rows with parcel status from main table
-        $cstmt = $conn->prepare("SELECT c.fld_parcel_ID, COALESCE(p.fld_parcel_status,'') AS fld_parcel_status, COALESCE(p.fld_parcel_amount,0) AS fld_parcel_amount, COALESCE(p.fld_parcel_date,'') AS fld_parcel_date FROM tbl_parcelcollection_ezparcel c LEFT JOIN tbl_parcel_ezparcel p ON p.fld_parcel_ID = c.fld_parcel_ID WHERE c.fld_user_email = :email ORDER BY c.fld_id DESC");
+        $cstmt = $conn->prepare("SELECT c.fld_parcel_ID, COALESCE(p.fld_parcel_status,'') AS fld_parcel_status, COALESCE(p.fld_parcel_amount,0) AS fld_parcel_amount, COALESCE(p.fld_parcel_date,'') AS fld_parcel_date FROM tbl_parcelcollection_ezparcel c LEFT JOIN tbl_parcel_ezparcel p ON p.fld_parcel_ID = c.fld_parcel_ID WHERE c.fld_user_email = :email 
+        AND LOWER(p.fld_parcel_status) != 'collected' 
+        ORDER BY c.fld_id DESC");
         $cstmt->execute([':email' => $_SESSION['user_email']]);
         $collections = $cstmt->fetchAll(PDO::FETCH_ASSOC);
     }
