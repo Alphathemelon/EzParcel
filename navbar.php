@@ -18,7 +18,7 @@ $user_level = isset($_SESSION['user_level']) ? (int)$_SESSION['user_level'] : 0;
             <a href="reportindex.php" class="<?= ($currentPage == 'reportindex.php') ? 'active' : '' ?>">Report</a>
         <?php elseif ($user_level === 2): ?>
             <a href="parcelstatus.php" class="<?= ($currentPage == 'parcelstatus.php') ? 'active' : '' ?>">Parcel Status</a>
-            <a href="parcelstatus.php" class="<?= ($currentPage == 'parcelstatus.php') ? 'active' : '' ?>">Completed Parcel Order</a>
+            <a href="completedparcel.php" class="<?= ($currentPage == 'completedparcel.php') ? 'active' : '' ?>">Completed Parcel Order</a>
         <?php else: ?>
             <!-- Default links for unauthenticated or unknown -->
             <a href="login.php">Home</a>
