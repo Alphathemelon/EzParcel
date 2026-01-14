@@ -129,7 +129,7 @@ function searchParcel(e) {
             </div>
         </div>
 
-        <button class="confirm-btn" onclick="markPaid('${p.fld_parcel_ID}')">
+        <button class="confirm-btn" onclick="markPaid('${p.fld_parcel_ID}','${p.fld_parcel_amount}','${p.fld_parcel_date}')">
             CONFIRM COLLECTION & PAID
         </button>
     </div>
@@ -137,14 +137,30 @@ function searchParcel(e) {
 }
 
 
-async function markPaid(orderid) {
+function computeLateFee(dateStr){
+    if(!dateStr) return 0;
+    const arrived = new Date(dateStr);
+    if (isNaN(arrived.getTime())) return 0;
+    const today = new Date();
+    const diffDays = Math.floor((today - arrived) / 86400000);
+    if (diffDays > 30) return 10;
+    if (diffDays > 7) return 3;
+    return 0;
+}
+
+async function markPaid(orderid, amount, dateStr) {
     const ok = confirm("Confirm parcel collected?");
     if (!ok) return;
+
+    const fee = computeLateFee(dateStr);
+    const total = (parseFloat(amount) || 0) + fee;
 
     const form = new URLSearchParams();
     form.append('action', 'update');
     form.append('parcelID', orderid);
     form.append('status', 'Collected');
+    form.append('total', total.toFixed(2));
+    // client no longer sends user email; server records total by parcel ID
 
     const res = await fetch('parcel_CRUD.php', {
         method: 'POST',
@@ -155,7 +171,7 @@ async function markPaid(orderid) {
     const data = await res.json();
 
     if (data.success) {
-        alert("Parcel collected!");
+        alert("Parcel collected! Total: RM" + total.toFixed(2));
         location.reload();
     } else {
         alert("Failed!");

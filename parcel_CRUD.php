@@ -163,6 +163,19 @@ if (($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) || $actio
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);
 
+    // If parcel marked collected, record total into main parcel table `tbl_parcel_ezparcel` as `fld_parcel_amount`
+    if (isset($_POST['status']) && $_POST['status'] === 'Collected') {
+        $total = isset($_POST['total']) ? $_POST['total'] : null;
+        if ($total !== null) {
+            try {
+                $upMain = $conn->prepare("UPDATE tbl_parcel_ezparcel SET fld_parcel_amount = :total WHERE fld_parcel_ID = :id");
+                $upMain->execute([':total' => $total, ':id' => $parcel_id]);
+            } catch (PDOException $e) {
+                // ignore to avoid breaking the main update flow
+            }
+        }
+    }
+
     echo json_encode([
         "success" => true,
         "message" => "Parcel updated",
